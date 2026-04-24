@@ -19,9 +19,11 @@ env/
 .env.local
 .env.*.local
 
-# Local data (볼륨으로 주입)
-data/
-!data/.gitkeep
+# Local data — 런타임 산출물만 차단 (raw 시드 파일은 git 에 포함)
+data/canonical.db
+data/canonical.db-*
+data/cache/
+data/*.log
 
 # Logs / tmp
 *.log
