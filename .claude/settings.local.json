@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/tmp/**)",
+      "Bash(python3)",
+      "Bash(python -m pip install python-docx)",
+      "Bash(python)",
+      "Bash(python -c ' *)",
+      "Bash(curl.exe -s http://127.0.0.1:8001/)",
+      "Bash(curl.exe -s -I -X GET http://127.0.0.1:8001/)",
+      "Bash(curl.exe -s -o /dev/null -w \"HTTP %{http_code}  bytes %{size_download}\\\\n\" http://127.0.0.1:8001/wiki/005940)",
+      "Bash(curl.exe -s http://127.0.0.1:8001__TRACKED_VAR__)",
+      "Bash(netstat -ano)",
+      "Bash(powershell -c 'Get-NetTCPConnection -LocalPort 8001 -ErrorAction SilentlyContinue | Select-Object OwningProcess | Get-Process -Id {$_.OwningProcess} 2>$null | Stop-Process -Force')",
+      "Bash(taskkill //F //PID 6504)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/stock_agent/agent_int/main.py',encoding='utf-8'\\).read\\(\\)\\); ast.parse\\(open\\('src/stock_agent/agent_int/shell.py',encoding='utf-8'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/stock_agent/agent_int/main.py',encoding='utf-8'\\).read\\(\\)\\); print\\('main.py syntax OK'\\)\")",
+      "Bash(tasklist //FI \"PID eq 6504\")",
+      "Bash(powershell -Command \"Get-Process -Id 6504 | Select-Object Id,ProcessName,StartTime\")",
+      "Bash(powershell -Command \"Stop-Process -Id 6504 -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500; netstat -ano | Select-String ':8001' | Select-Object -First 3\")",
+      "Bash(cmd //c \"taskkill /F /PID 6504\")",
+      "Bash(powershell -Command \"Get-NetTCPConnection -LocalPort 8001 -State Listen -ErrorAction SilentlyContinue | Select-Object LocalAddress,LocalPort,OwningProcess\")",
+      "Bash(powershell -Command \"Get-CimInstance Win32_Process -Filter 'ProcessId=6504' | Select-Object ProcessId,Name,CommandLine,ExecutablePath\")",
+      "Bash(powershell -Command \"\\(Get-CimInstance Win32_Process -Filter 'ProcessId=6504'\\).Terminate\\(\\)\")",
+      "Bash(curl -s http://127.0.0.1:8002/health)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}  /wiki/\\\\n\" http://127.0.0.1:8002/wiki/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}  /wiki/AGENTS.md\\\\n\" http://127.0.0.1:8002/wiki/AGENTS.md)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}  /wiki/log.md\\\\n\" http://127.0.0.1:8002/wiki/log.md)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}  /wiki/005930\\\\n\" http://127.0.0.1:8002/wiki/005930)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}  /wiki/api/tree.json\\\\n\" http://127.0.0.1:8002/wiki/api/tree.json)",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/stock_agent/agent_int/main.py',encoding='utf-8'\\).read\\(\\)\\); print\\('main.py OK'\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /wiki/  |  \" http://127.0.0.1:8002/wiki/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /wiki/005930  |  \" http://127.0.0.1:8002/wiki/005930)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} /cost\\\\n\" http://127.0.0.1:8002/cost)",
+      "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json\" -d '{\"q\":\"삼성전자 뭐하는 회사?\",\"stream\":false}')",
+      "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('tickers:',d['tickers']\\); print\\('intent:',d['intent']\\); print\\('answer:',d['answer'][:120]\\)\")",
+      "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json; charset=utf-8\" --data-binary '{\"q\":\"005930\",\"stream\":false}')",
+      "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json\" --data-binary '{\"q\":\"005930\",\"stream\":false}')"
+    ]
+  }
+}

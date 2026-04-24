@@ -1,0 +1,30 @@
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# 로컬 데이터 — 이미지에 넣지 않음 (볼륨으로 주입)
+data/
+!data/.gitkeep
+
+# 개발 환경 파일
+.env
+.env.local
+.git/
+.github/
+.idea/
+.vscode/
+*.log
+/tmp/
+eval_report.json
+
+# Docker 메타
+docker-compose.override.yml

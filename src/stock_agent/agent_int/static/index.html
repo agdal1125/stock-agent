@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>NH Stock-Agent — 질문</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #293548;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --accent-2: #22c55e;
+    --warn: #f59e0b;
+    --err: #ef4444;
+    --border: #334155;
+    --cite: #fbbf24;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Pretendard", "Segoe UI", "Malgun Gothic",
+                 "Apple SD Gothic Neo", sans-serif;
+    line-height: 1.55; font-size: 15px;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 22px 80px; }
+  header h1 { margin: 0 0 4px 0; font-weight: 700; font-size: 22px; letter-spacing: -0.01em; }
+  header p { margin: 0 0 24px 0; color: var(--muted); font-size: 13px; }
+
+  .status {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    background: var(--panel); padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 20px; font-size: 12px; color: var(--muted);
+  }
+  .status .k { color: var(--accent); font-weight: 600; }
+  .status .bad { color: var(--err); font-weight: 600; }
+
+  .examples { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
+  .examples .label { color: var(--muted); font-size: 12px; align-self: center; margin-right: 6px; }
+  .chip {
+    background: var(--panel); color: var(--text); border: 1px solid var(--border);
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; cursor: pointer;
+    transition: all .15s;
+  }
+  .chip:hover { background: var(--panel-2); border-color: var(--accent); color: var(--accent); }
+
+  .ask-row { display: flex; gap: 8px; margin-top: 10px; }
+  textarea {
+    flex: 1; resize: vertical; min-height: 72px;
+    background: var(--panel); color: var(--text);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; font-family: inherit; font-size: 14px;
+  }
+  textarea:focus { outline: none; border-color: var(--accent); }
+  button.primary {
+    padding: 0 18px; border: 0; border-radius: 8px;
+    background: var(--accent); color: #0b1220; font-weight: 700;
+    cursor: pointer; min-width: 96px;
+  }
+  button.primary:disabled { opacity: .55; cursor: progress; }
+  .opts { margin-top: 6px; font-size: 12px; color: var(--muted); }
+  .opts input { margin-right: 4px; }
+
+  .result { margin-top: 22px; }
+  .meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+  .badge {
+    padding: 3px 10px; border-radius: 999px; font-size: 11px;
+    font-weight: 600; letter-spacing: .02em;
+  }
+  .badge.ticker  { background: #1e3a8a; color: #bfdbfe; }
+  .badge.intent  { background: #064e3b; color: #a7f3d0; }
+  .badge.latency { background: #1e293b; color: var(--muted); }
+  .badge.none    { background: #450a0a; color: #fecaca; }
+  .badge.cached  {
+    background: linear-gradient(90deg, rgba(250,204,21,.25), rgba(251,146,60,.25));
+    color: #fde68a; border: 1px solid rgba(251,191,36,.5);
+    animation: pulseCached 1.4s ease-in-out 1;
+  }
+  .badge.tagfall {
+    background: rgba(147,51,234,.18); color: #d8b4fe;
+    border: 1px solid rgba(147,51,234,.45);
+  }
+  .badge.streaming {
+    background: rgba(56,189,248,.14); color: var(--accent);
+    border: 1px solid rgba(56,189,248,.45);
+  }
+  .badge.streaming::before {
+    content: ""; display: inline-block; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--accent); margin-right: 5px;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @keyframes pulseCached {
+    0%   { transform: scale(.9); opacity: 0; }
+    40%  { transform: scale(1.08); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .answer {
+    background: var(--panel); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent-2);
+    padding: 14px 16px; border-radius: 8px; white-space: pre-wrap;
+    font-size: 15px; min-height: 20px;
+  }
+  .answer.streaming { border-left-color: var(--accent); }
+  .answer .cite {
+    color: var(--cite); font-size: 11px; font-weight: 600;
+    background: rgba(251,191,36,.08); padding: 1px 5px; border-radius: 4px;
+  }
+  .answer .caret {
+    display: inline-block; width: 6px; height: 14px;
+    background: var(--accent); margin-left: 1px;
+    vertical-align: -2px; animation: blink 1s infinite;
+  }
+
+  details {
+    margin-top: 14px; background: var(--panel); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+  }
+  details > summary { cursor: pointer; color: var(--muted); font-size: 13px; user-select: none; }
+  details[open] > summary { color: var(--accent); margin-bottom: 8px; }
+
+  .hit {
+    border-top: 1px dashed var(--border); padding: 10px 0;
+  }
+  .hit:first-child { border-top: 0; padding-top: 4px; }
+  .hit .hit-head {
+    display: flex; justify-content: space-between; gap: 8px;
+    font-size: 12px; color: var(--muted); margin-bottom: 4px;
+  }
+  .hit code { color: var(--accent); font-size: 12px; }
+  .hit a { color: var(--accent); text-decoration: none; }
+  .hit a:hover { text-decoration: underline; }
+  .hit pre {
+    margin: 0; white-space: pre-wrap; font-size: 12px; color: #cbd5e1;
+    font-family: "Consolas", "Menlo", monospace; line-height: 1.5;
+  }
+  .src-tag {
+    display: inline-block; font-size: 10px; padding: 1px 7px; border-radius: 999px;
+    font-weight: 600; letter-spacing: .02em; margin-right: 4px;
+    vertical-align: 1px;
+  }
+  .src-tag.src-primary    { background: rgba(56,189,248,.15); color: #7dd3fc; }
+  .src-tag.src-tag-expand { background: rgba(251,191,36,.15); color: #fde68a; }
+  .src-tag.src-wl         { background: rgba(34,197,94,.15); color: #86efac; }
+  .src-tag.src-rel        { background: rgba(147,51,234,.18); color: #d8b4fe; }
+
+  .error {
+    background: #450a0a; color: #fecaca; border: 1px solid #7f1d1d;
+    padding: 10px 14px; border-radius: 8px; margin-top: 14px;
+  }
+
+  footer { margin-top: 40px; color: var(--muted); font-size: 11px; text-align: center; }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>NH Stock-Agent — 질문</h1>
+    <p>종목 Wiki를 활용한 범용 질의응답 · 답변이 토큰 단위로 스트리밍됩니다.</p>
+  </header>
+
+  <div class="status" id="status">상태 확인 중…</div>
+
+  <div class="examples">
+    <span class="label">예시</span>
+    <button class="chip">삼전 최근 영업이익 얼마야?</button>
+    <button class="chip">우리기술 뭐하는 기업?</button>
+    <button class="chip">리튬포어스 주요 제품/서비스가 뭐야?</button>
+    <button class="chip">하이닉스 소식</button>
+    <button class="chip">HBM 관련 종목</button>
+  </div>
+
+  <div class="ask-row">
+    <textarea id="q" placeholder="종목명 또는 6자리 코드를 포함해 질문해 주세요. 예: '삼성전자 오늘 왜 올랐어?'"></textarea>
+    <button class="primary" id="submit">질문하기</button>
+  </div>
+  <div class="opts">
+    <label><input type="checkbox" id="trace" /> 전체 trace JSON 함께 보기 (디버그)</label>
+  </div>
+
+  <div id="result"></div>
+
+  <footer>
+    모든 LLM 호출은 <code>llm_io_log</code>에 감사 기록 · 같은 질문 재요청 시 ⚡cached 로 표시됩니다.
+  </footer>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const result = $('result');
+const qInput = $('q');
+const traceInput = $('trace');
+const submitBtn = $('submit');
+
+document.querySelectorAll('.chip').forEach(c => {
+  c.addEventListener('click', () => {
+    qInput.value = c.textContent;
+    qInput.focus();
+  });
+});
+
+qInput.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); doAsk(); }
+});
+submitBtn.addEventListener('click', doAsk);
+
+function escape(s) {
+  return String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+function renderAnswer(text) {
+  const esc = escape(text);
+  return esc.replace(/\(([a-z_]+(?:\s*,\s*[a-z_]+)*)\)/g,
+                     '<span class="cite">($1)</span>');
+}
+
+async function fetchJSON(url, opts) {
+  const r = await fetch(url, opts);
+  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+  return await r.json();
+}
+
+async function loadStatus() {
+  try {
+    const h = await fetchJSON('/health');
+    const kill = h.kill_switch
+      ? `<span class="bad">KILL_SWITCH ON</span>`
+      : `<span class="k">LLM live</span>`;
+    $('status').innerHTML =
+      `<div>${kill}</div>` +
+      `<div>model: <span class="k">${escape(h.model)}</span></div>` +
+      `<div>tickers: <span class="k">${h.ticker_master}</span></div>` +
+      `<div>events: <span class="k">${h.events}</span></div>` +
+      `<div>sections: <span class="k">${h.section_docs}</span> (embedded <span class="k">${h.embedded_docs}</span>)</div>`;
+  } catch (e) {
+    $('status').innerHTML = `<div class="bad">서버 연결 실패: ${escape(e.message)}</div>`;
+  }
+}
+
+function renderMeta(state) {
+  const meta = [];
+  const tickers = state.tickers || [];
+  if (tickers.length) {
+    tickers.forEach(t => meta.push(
+      `<a class="badge ticker" href="/wiki/${escape(t)}" title="Wiki에서 보기">${escape(t)}</a>`));
+  } else {
+    meta.push(`<span class="badge none">no ticker</span>`);
+  }
+  if (state.intent) {
+    meta.push(`<span class="badge intent">${escape(state.intent)}</span>`);
+  }
+  if (state.cached) {
+    const lvl = state.cache_level ? ` ${escape(state.cache_level)}` : '';
+    meta.push(`<span class="badge cached" title="캐시 적중 — LLM 호출 없음">⚡ cached${lvl}</span>`);
+  } else if (state.tag_fallback) {
+    meta.push(`<span class="badge tagfall" title="종목 미지정 — 태그로 후보 찾음">🏷️ tag fallback</span>`);
+  }
+  if (state.streaming) {
+    meta.push(`<span class="badge streaming">streaming</span>`);
+  }
+  if (state.latency_ms != null) {
+    meta.push(`<span class="badge latency">${state.latency_ms}ms</span>`);
+  }
+  return meta.join('');
+}
+
+function renderSectionSource(src) {
+  if (!src || src === 'primary') {
+    return `<span class="src-tag src-primary">primary</span>`;
+  }
+  if (src.startsWith('tag:')) {
+    return `<span class="src-tag src-tag-expand" title="태그 확장">#${escape(src.slice(4))}</span>`;
+  }
+  if (src.startsWith('wikilink:')) {
+    return `<span class="src-tag src-wl" title="위키링크 1-hop">→ ${escape(src.slice(9))}</span>`;
+  }
+  if (src.startsWith('related:')) {
+    return `<span class="src-tag src-rel" title="연관 종목">rel:${escape(src.slice(8))}</span>`;
+  }
+  return `<span class="src-tag">${escape(src)}</span>`;
+}
+
+function renderSections(hits) {
+  if (!hits || !hits.length) return '';
+  let h = `<details open><summary>참고한 문서 (${hits.length})</summary>`;
+  for (const hit of hits) {
+    const [tkr, sec] = (hit.doc_id || '').split(':');
+    const href = tkr ? `/wiki/${tkr}#sec-${sec || ''}` : '#';
+    const score = typeof hit.score === 'number' ? hit.score.toFixed(3) : hit.score;
+    h += `<div class="hit">
+      <div class="hit-head">
+        <code><a href="${href}">${escape(hit.doc_id)}</a></code>
+        <span>${renderSectionSource(hit.source)} · score ${score}</span>
+      </div>
+      <pre>${escape(hit.content_preview || '')}</pre>
+    </div>`;
+  }
+  h += `</details>`;
+  return h;
+}
+
+async function doAsk() {
+  const q = qInput.value.trim();
+  if (!q) { qInput.focus(); return; }
+  submitBtn.disabled = true; submitBtn.textContent = '…';
+  result.innerHTML = '';
+
+  const t0 = performance.now();
+  const state = {
+    tickers: [], intent: null, cached: false, streaming: true,
+    hits: [], answer: '', latency_ms: null,
+  };
+
+  // 섀시: meta + answer + sections
+  result.innerHTML = `
+    <section class="result">
+      <div class="meta" id="meta"></div>
+      <div class="answer streaming" id="answerBox"><span class="caret"></span></div>
+      <div id="sectionsBox"></div>
+    </section>`;
+  const metaEl = $('meta');
+  const ansEl = $('answerBox');
+  const secEl = $('sectionsBox');
+  metaEl.innerHTML = renderMeta(state);
+
+  let traceRaw = '';
+
+  try {
+    const resp = await fetch('/ask', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ q, stream: true, trace: traceInput.checked }),
+    });
+    if (!resp.ok) throw new Error(`${resp.status} ${resp.statusText}`);
+
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        let evt;
+        try { evt = JSON.parse(line); }
+        catch (_) { continue; }
+        traceRaw += line + '\n';
+        handleEvent(evt, state, metaEl, ansEl, secEl);
+      }
+    }
+    // flush tail
+    if (buf.trim()) {
+      try {
+        handleEvent(JSON.parse(buf.trim()), state, metaEl, ansEl, secEl);
+        traceRaw += buf;
+      } catch (_) {}
+    }
+  } catch (e) {
+    result.innerHTML += `<div class="error">호출 실패: ${escape(e.message)}</div>`;
+  } finally {
+    state.streaming = false;
+    if (state.latency_ms == null) {
+      state.latency_ms = Math.round(performance.now() - t0);
+    }
+    metaEl.innerHTML = renderMeta(state);
+    ansEl.classList.remove('streaming');
+    // caret 제거
+    ansEl.innerHTML = renderAnswer(state.answer || ansEl.textContent || '');
+    submitBtn.disabled = false; submitBtn.textContent = '질문하기';
+    loadStatus();
+
+    if (traceInput.checked && traceRaw) {
+      const esc = escape(traceRaw);
+      secEl.innerHTML += `<details><summary>전체 trace (NDJSON)</summary>
+        <pre style="max-height:400px;overflow:auto;font-family:Consolas,Menlo,monospace;
+                    font-size:11px;color:#cbd5e1;background:#0b1220;padding:10px;border-radius:6px;">${esc}</pre>
+      </details>`;
+    }
+  }
+}
+
+function handleEvent(evt, state, metaEl, ansEl, secEl) {
+  switch (evt.type) {
+    case 'meta':
+      state.tickers = evt.tickers || [];
+      state.intent = evt.intent;
+      state.cached = !!evt.cached;
+      state.cache_level = evt.cache_level || null;
+      state.tag_fallback = !!evt.tag_fallback;
+      metaEl.innerHTML = renderMeta(state);
+      break;
+    case 'sections':
+      state.hits = evt.hits || [];
+      secEl.innerHTML = renderSections(state.hits);
+      break;
+    case 'answer':
+      state.answer = evt.text || '';
+      ansEl.innerHTML = renderAnswer(state.answer) +
+        (state.streaming ? '<span class="caret"></span>' : '');
+      break;
+    case 'token':
+      state.answer += evt.text || '';
+      ansEl.innerHTML = renderAnswer(state.answer) + '<span class="caret"></span>';
+      break;
+    case 'done':
+      state.latency_ms = evt.latency_ms;
+      state.cached = !!evt.cached;
+      metaEl.innerHTML = renderMeta(state);
+      break;
+  }
+}
+
+loadStatus();
+</script>
+</body>
+</html>

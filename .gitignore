@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# Local data (볼륨으로 주입)
+data/
+!data/.gitkeep
+
+# Logs / tmp
+*.log
+/tmp/
+eval_report.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Docker
+docker-compose.override.yml

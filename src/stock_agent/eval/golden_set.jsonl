@@ -1,0 +1,24 @@
+{"id": "g01", "q": "삼성전자 오늘 왜 올랐어?", "expect_ticker": "005930", "expect_intent": "latest_issue", "expect_any_keywords": ["파운드리", "HBM", "메모리"]}
+{"id": "g02", "q": "005930 HBM4 퀄 소식", "expect_ticker": "005930", "expect_intent": "latest_issue", "expect_any_keywords": ["HBM", "샘플"]}
+{"id": "g03", "q": "삼전 경쟁사 어디야", "expect_ticker": "005930", "expect_intent": "relations", "expect_any_keywords": ["SK하이닉스", "TSMC", "마이크론"]}
+{"id": "g04", "q": "SK하이닉스 HBM 공급 상황", "expect_ticker": "000660", "expect_intent": "latest_issue", "expect_any_keywords": ["HBM", "완판", "AI"]}
+{"id": "g05", "q": "하이닉스 실적 가이던스 어때", "expect_ticker": "000660", "expect_intent": "finance", "expect_any_keywords": ["실적", "HBM"]}
+{"id": "g06", "q": "NH투자증권 AI 시황 새 소식", "expect_ticker": "005940", "expect_intent": "latest_issue", "expect_any_keywords": ["AI", "Agent", "시황"]}
+{"id": "g07", "q": "NH증권은 뭐하는 회사야", "expect_ticker": "005940", "expect_intent": "business_model", "expect_any_keywords": ["증권", "리테일", "IB"]}
+{"id": "g08", "q": "셀트리온 스텔라라 바이오시밀러", "expect_ticker": "068270", "expect_intent": "latest_issue", "expect_any_keywords": ["스텔라라", "처방", "미국"]}
+{"id": "g09", "q": "셀트리온 리스크 뭐가 있어", "expect_ticker": "068270", "expect_intent": "finance", "expect_any_keywords": ["환율", "특허", "임상"]}
+{"id": "g10", "q": "우리기술 원전 테마 왜 올라", "expect_ticker": "032820", "expect_intent": "latest_issue", "expect_any_keywords": ["SMR", "원전"]}
+{"id": "g11", "q": "리튬포어스 급등", "expect_ticker": "073570", "expect_intent": "latest_issue", "expect_any_keywords": ["2차전지", "리튬"]}
+{"id": "g12", "q": "더존비즈온 AI 코파일럿", "expect_ticker": "012510", "expect_intent": "latest_issue", "expect_any_keywords": ["AI", "자동화", "SaaS"]}
+{"id": "g13", "q": "더존은 무슨 회사야", "expect_ticker": "012510", "expect_intent": "business_model", "expect_any_keywords": ["ERP", "SaaS", "클라우드"]}
+{"id": "g14", "q": "대한광통신 AI 데이터센터", "expect_ticker": "010170", "expect_intent": "latest_issue", "expect_any_keywords": ["데이터센터", "광케이블", "AI"]}
+{"id": "g15", "q": "JYP 월드투어 소식", "expect_ticker": "035900", "expect_intent": "latest_issue", "expect_any_keywords": ["투어", "IP"]}
+{"id": "g16", "q": "JYP 실적 전망 어때", "expect_ticker": "035900", "expect_intent": "finance", "expect_any_keywords": ["투어", "실적", "일본"]}
+{"id": "g17", "q": "한국석유 SOC 수혜", "expect_ticker": "004090", "expect_intent": "latest_issue", "expect_any_keywords": ["SOC", "아스팔트"]}
+{"id": "g18", "q": "한국석유 재무 상태", "expect_ticker": "004090", "expect_intent": "finance", "expect_any_keywords": ["유가", "아스팔트"]}
+{"id": "g19", "q": "삼성전자 종토방 분위기 어때", "expect_ticker": "005930", "expect_intent": "sns_buzz", "expect_any_keywords": ["HBM", "실적", "종토방"]}
+{"id": "g20", "q": "우리기술 리딩방 반응", "expect_ticker": "032820", "expect_intent": "sns_buzz", "expect_any_keywords": ["SMR", "원전"]}
+{"id": "g21", "q": "셀트리온 어떤 섹터야", "expect_ticker": "068270", "expect_intent": "theme", "expect_any_keywords": ["바이오"]}
+{"id": "g22", "q": "SK하이닉스 AI 관련 테마", "expect_ticker": "000660", "expect_intent": "theme", "expect_any_keywords": ["반도체", "HBM", "AI"]}
+{"id": "g23", "q": "존재하지않는이름 어떻게", "expect_ticker": null, "expect_intent": "generic", "expect_any_keywords": []}
+{"id": "g24", "q": "파운드리 수주 특징주", "expect_ticker": "005930", "expect_intent": "latest_issue", "expect_any_keywords": ["파운드리"]}

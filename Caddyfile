@@ -1,0 +1,47 @@
+# stock-agent · Caddy reverse proxy + 자동 HTTPS (Let's Encrypt)
+#
+# 사용:
+#   1) Vultr 인스턴스 IP 확인:      curl -s ifconfig.me       # 예) 192.0.2.42
+#   2) 도메인 없이 HTTPS 확보:      192-0-2-42.sslip.io
+#                                   → IP 자동 매핑 (sslip.io 무료 와일드카드 DNS)
+#   3) .env 에   PUBLIC_HOST=192-0-2-42.sslip.io
+#   4) docker compose --profile prod up -d
+#
+# Caddy 가:
+#   - :80 HTTP → :443 HTTPS 자동 리다이렉트
+#   - Let's Encrypt 인증서 자동 발급·갱신 (HTTP-01 챌린지)
+#   - /ask 스트리밍 유지 (buffer 비활성)
+
+{$PUBLIC_HOST} {
+    encode zstd gzip
+
+    # /ask 는 SSE·NDJSON 스트리밍 — 버퍼링 금지
+    @stream path /ask
+    handle @stream {
+        reverse_proxy app:8001 {
+            flush_interval -1
+            transport http {
+                response_header_timeout 5m
+            }
+        }
+    }
+
+    handle {
+        reverse_proxy app:8001
+    }
+
+    # 보안 헤더
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # 접근 로그 — stdout (docker compose logs caddy 로 확인)
+    log {
+        output stdout
+        format json
+    }
+}

@@ -1,0 +1,8 @@
+ticker,name_ko,name_en,aliases,market,sector,is_preferred
+005930,삼성전자,Samsung Electronics,"삼성전자|Samsung Elec|SEC|삼전",KOSPI,반도체,0
+000660,SK하이닉스,SK hynix,"SK하이닉스|하이닉스|SK Hynix|SKH",KOSPI,반도체,0
+005940,NH투자증권,NH Investment & Securities,"NH투자증권|NH증권|NHIS",KOSPI,증권,0
+068270,셀트리온,Celltrion,"셀트리온|Celltrion|CTN",KOSPI,바이오,0
+032820,우리기술,Woori Technology,"우리기술|Woori Tech",KOSDAQ,전기전자,0
+073570,리튬포어스,Lithium Forus,"리튬포어스|포어스",KOSDAQ,2차전지소재,0
+012510,더존비즈온,Douzone Bizon,"더존비즈온|더존|Douzone",KOSPI,소프트웨어,0

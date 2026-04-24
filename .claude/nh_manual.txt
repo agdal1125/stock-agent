@@ -1,0 +1,2616 @@
+
+
+NH투자증권
+AI시황 매뉴얼
+v1.3
+
+㈜ 솔트룩스
+
+개 정 이 력
+개정번호
+재개정일자
+재개정 내용
+작성자
+1.0
+2026.02.27
+최초 작성
+표기두, 장진희
+1.1
+2026.03.12
+화면 캡쳐 이미지 추가 및 매뉴얼 수정 요청 사항 추가
+표기두, 이지은
+1.2
+2026.03.25
+1차 피드백 반영
+표기두
+1.3
+2026.04.08
+스크린샷 반영
+표기두
+
+목차
+ TOC \o "1-3" \h \z \u 1. AI시황 시스템 소개 PAGEREF _Toc225509503 \h 5
+1.1 시스템 개요 PAGEREF _Toc225509504 \h 5
+1.2 시스템 운영 환경 PAGEREF _Toc225509505 \h 5
+1.3 서비스 접속 정보 및 환경 PAGEREF _Toc225509506 \h 6
+1.4 메뉴 구성 개요 PAGEREF _Toc225509507 \h 7
+2. 시스템 아키텍처 및 데이터 흐름 PAGEREF _Toc225509508 \h 8
+2.1 전체 시스템 구성도 PAGEREF _Toc225509509 \h 8
+2.2 데이터 수집 파이프라인 PAGEREF _Toc225509510 \h 9
+2.3 데이터 발송 파이프라인 PAGEREF _Toc225509511 \h 10
+3. 데이터 수집 및 관리 PAGEREF _Toc225509512 \h 10
+3.1 실시간 시장 데이터 수집: udp_collector PAGEREF _Toc225509513 \h 10
+3.2 SNS 및 외부 데이터 수집 PAGEREF _Toc225509514 \h 18
+3.3 데이터 저장소 구조 PAGEREF _Toc225509515 \h 21
+4. 데이터 처리 및 AI 생성 PAGEREF _Toc225509516 \h 22
+4.1 Databricks Job 설정 PAGEREF _Toc225509517 \h 22
+4.2 데이터 가공 및 스코어링 PAGEREF _Toc225509518 \h 23
+4.3 AI 시황 생성 항목 및 기준 PAGEREF _Toc225509519 \h 24
+5. 운영 관리 및 장애 대응 PAGEREF _Toc225509520 \h 26
+5.1 인프라 및 서비스 관리 PAGEREF _Toc225509521 \h 26
+5.2 운영 환경 분기 및 배포 절차 PAGEREF _Toc225509522 \h 27
+5.3 Databricks Job 모니터링 및 관리 PAGEREF _Toc225509523 \h 33
+5.4 장애 대응 가이드 PAGEREF _Toc225509524 \h 41
+6. 운영 이슈 및 로그 확인 PAGEREF _Toc225509525 \h 44
+6.1 LLM 로그 조회 쿼리 및 차단 로그 확인 PAGEREF _Toc225509526 \h 44
+6.2 주요 운영 이슈 및 특이사항 PAGEREF _Toc225509527 \h 46
+7. 서비스 가이드 PAGEREF _Toc225509528 \h 49
+7.1 서비스 화면 및 메뉴 구조 PAGEREF _Toc225509529 \h 49
+7.2 서비스 콘텐츠 구성 및 생성 기준 PAGEREF _Toc225509530 \h 50
+7.3 상세 기능 활용 가이드 PAGEREF _Toc225509531 \h 55
+8. 운영 시나리오 PAGEREF _Toc225509532 \h 60
+8.1 프롬프트 수정 및 테스트 비교 시나리오 PAGEREF _Toc225509533 \h 60
+8.2 외부 데이터 수집기 추가 시나리오 PAGEREF _Toc225509534 \h 61
+8.3. 신규 서비스 생성 시나리오 (교육용) PAGEREF _Toc225509535 \h 65
+8.4. 데이터 수집 스키마 변경 대응 시나리오 PAGEREF _Toc225509536 \h 67
+
+1. AI시황 시스템 소개
+1.1 시스템 개요
+AI 시황 시스템은 금융 시장 전반의 흐름과 주요 변동 요인을 인공지능 기반 분석을 통해 사용자에게 제공하는 서비스입니다. 국내 시장을 중심으로 최근 발생한 주요 이슈, 테마 및 업종 동향, 종목별 시황 등을 종합적으로 분석하여 제공함으로써 사용자가 현재 시장 상황을 빠르게 이해할 수 있도록 지원합니다.
+본 서비스는 실시간 뉴스 데이터와 KRX 시장 데이터를 기반으로, Azure OpenAI(GPT-4.1) 모델을 활용하여 시황 콘텐츠를 자동 생성합니다. 생성된 콘텐츠는 장중 약 10~30분 주기로 갱신되고, KOSPI 지수가 ±4% 이상 변동하는 경우 긴급 시황 콘텐츠가 생성되어 시장 상황을 신속하게 전달하도록 설계되어 있습니다.
+
+1.2 시스템 운영 환경
+AI 시황 시스템은 Microsoft Azure 클라우드 환경을 기반으로 운영됩니다.
+주요 시스템 구성은 다음과 같습니다.
+1) 데이터 처리 (Azure Databricks)
+구분
+내용
+Databricks Runtime
+17.3 LTS
+언어
+Python 3.12 (Runtime 기본 제공 버전)
+프레임워크
+PySpark (Apache Spark 4.0.0)
+데이터 저장
+Delta Lake
+데이터 스키마
+bronze.*, silver.*, gold.*, config.*, logs.*
+
+2) 백엔드 API (Azure Container Apps) 
+구분
+내용
+빌드 환경 / 런타임
+Python 3.11 (slim-buster 기반 Docker)
+언어
+Python 3.11
+프레임워크
+FastAPI
+웹 서버 / 실행
+Uvicorn (ASGI)
+포트 / 서버
+8000
+
+3) 프론트엔드 웹 (Azure Container Apps)
+구분
+내용
+빌드 환경 / 런타임
+Node.js 20 + Alpine Linux (빌드), Nginx stable-alpine (서빙)
+언어
+TypeScript (~5.7.2), JavaScript (ES6+)
+프레임워크
+React 18, Nx 20, Vite 6
+포트 / 서버
+Nginx 80
+
+각 시스템은 클라우드 환경에서 자동화된 데이터 처리 및 시황 생성 작업을 수행하며, 사용자에게 웹 기반 서비스를 통해 시황 정보를 제공합니다.
+
+1.3 서비스 접속 정보 및 환경
+AI 시황 서비스는 웹 기반 서비스로 제공되며 다음 URL을 통해 접속할 수 있습니다.
+- 개발 환경: https://dmarketai.nhsec.com/ms/aimc
+- 운영 환경: https://marketai.nhsec.com/ms/aimc
+운영 담당자는 테스트 앱 외에도 해당 URL을 통해 서비스 화면 및 시황 생성 결과를 확인할 수 있습니다.
+
+Azure Databricks는 내부 프록시 설정 후에 다음 URL로 접속합니다
+- 접속 경로: 내부망 PC → 내부 프록시 설정 → Databricks URL 접속.
+- 개발 환경: https://adb-1262864985660652.12.azuredatabricks.net
+- 운영 환경: https://adb-503793798960427.7.azuredatabricks.net
+
+데이터 수집서버는 Azure VM에서 가동되며 Bastion Host을 거쳐 접속합니다
+- 접속 경로: 로컬 PC → Bastion Host (Gateway) → 수집 서버 (Target)
+- 개발 환경 접속 방법:
+로컬 PC에서 PowerShell 실행
+Bastion Host 접속: az ssh vm -n vm-hub-bst-shd -g rg-hub-shd --port 62234
+수집 서버(Azure VM) 내부 접속: az ssh vm -n nh-vm-market-dev -g rg-dataings-dev –port 62234
+- 운영 환경 접속 방법:
+로컬 PC에서 PowerShell 실행
+Bastion Host 접속: az ssh vm -n vm-hub-bst-prd -g rg-hub-shd --port 62234
+수집 서버(Azure VM) 내부 접속: az ssh vm -n nh-vm-market-prd-01 -g rg-dataings-prd –port 62234 (서버1)
+az ssh vm -n nh-vm-market-prd-02 -g rg-dataings-prd –port 62234 (서버2)
+
+Azure Portal 접속 및 Apps 실시간 로그 조회는 외부망에서 하단의 URL로 접속 후 확인할 수 있습니다.
+- 접속 경로: 외부망(또는 허용된 망) → Azure Portal
+- 접속 방법:
+웹 브라우저에서 portal.azure.com 접속.
+NH투자증권 테넌트 계정으로 로그인 및 MFA 인증.
+App Service 또는 Container Apps 메뉴에서 해당 서비스 선택 후 'Log Stream’ 확인
+
+&lt;app-sns-int-prd 로그 스트림 화면&gt;
+
+1.4 메뉴 구성 개요
+생성된 시황 데이터는 Backend API를 통해 조회 및 Redis 갱신이 되며, Frontend Web에서 사용자에게 표시됩니다. 또한 ADLS를 통해 외부 시스템 연동용 CSV를 내보내는 작업도 진행합니다.
+- Backend API: 시황 데이터 조회/갱신 알림 (Azure Container Apps)
+- Frontend Web: 웹 기반 시황 화면 (Azure Container Apps)
+- ADLS: 외부 시스템 연동용 CSV 내보내기 (네이버클라우드 커뮤니티 전송)
+
+2. 시스템 아키텍처 및 데이터 흐름
+2.1 전체 시스템 구성도
+AI 시황 시스템은 다음과 같은 주요 단계로 구성됩니다.
+1) 시장 데이터 및 뉴스 데이터 수집
+2) 데이터 가공 및 저장
+3) 데이터 분석 및 시황 생성
+4) 시황 콘텐츠 서비스 제공
+데이터 수집부터 시황 생성 및 서비스 제공까지의 전체 과정은 Azure 기반 인프라와 Databricks 데이터 처리 환경을 통해 자동으로 수행됩니다.
+
+&lt;AI시황 서비스 구성도&gt;
+
+&lt;외부데이터 수집 구성도&gt;
+
+2.2 데이터 수집 파이프라인
+AI 시황 시스템의 데이터 수집은 실시간 시장 데이터, 외부 데이터로 구성됩니다.
+
+2.2.1 실시간 시장 데이터 수집
+실시간 시장 데이터는 UDP 기반 수집 서버를 통해 수신됩니다.
+UDP 수집 서버 (VM, 포트 30101~30107)
+ → ADLS (landing/port=301xx/*.jsonl)
+ → Databricks 00_ingest_bronze
+ → Bronze 테이블 적재
+수집된 데이터는 JSONL 형식으로 저장되며 Databricks에서 Bronze 레이어로 적재됩니다.
+
+2.2.2 SNS 및 외부 데이터 수집
+SNS 및 외부 데이터는 Container App 기반 수집 모듈을 통해 수집됩니다.
+sns-int (Container App, 스케줄러)
+ → sns-ext (Container App, 수집 API)
+ → ADLS (landing/SNS/perplexity|telegram|quartr|ezar/)
+ → Databricks 03/04/06_*_ingest_batch
+ → Bronze 테이블 적재
+현재 수집 대상 데이터는 Perplexity 뉴스, Telegram, Quartr, Ezar로, 해당 데이터들은 이후 종목 뉴스 분석 및 시황 생성 과정에서 활용됩니다.
+2.3 데이터 발송 파이프라인
+2.3.1 주요 국내 시황 요약 발송 
+Databricks에서 생성된 국내 시황 요약 데이터는 외부 커뮤니티 서버로 전달됩니다.
+Databricks 65_macro_summary_export.py
+ → ADLS (landing/snd/NH_POST_BOT3_{date})
+ → adls_downloader API (VM :5050)
+ → eaiBatch
+ → 커뮤니티 서버
+해당 과정은 Databricks 작업 완료 후 자동으로 호출됩니다.
+
+3. 데이터 수집 및 관리
+실시간 시장 데이터와 뉴스 데이터 수집 프로그램, 국내시황 요약파일 전송 프로그램으로 구성됩니다.
+컴포넌트
+실행 환경
+배포 경로
+역할
+UDP 데이터 수집서버 
+Azure VM
+/sw/udp_collector
+7개 UDP 포트로 실시간 시장 데이터 수신 → ADLS 업로드
+ADLS 다운로더 및 전송서버
+Azure VM (동일)
+/sw/adls_downloader
+ADLS에서 시황 요약 파일 다운로드 → eaiBatch로 커뮤니티 서버 발송
+sns-ext (외부 데이터 수집기)
+Azure Container App (app-sns-ext-prd)
+Azure Container Registry (nhaiacr/nhaiacrprd)
+Perplexity/Ezar/Quartr 외부 데이터 수집 API
+sns-int (외부 데이터 수집 스케줄러)
+Azure Container App (app-sns-int-prd)
+Azure Container Registry (nhaiacr/nhaiacrprd)
+sns-ext 호출 스케줄러 + ADLS 업로드
+수집된 데이터는 Azure Delta Lake Storage(ADLS)와 Databricks 내부 테이블에 저장되어 이후 데이터 처리 과정에서 활용됩니다.
+* ADLS 업로드 실패 시 landing_buffer/ 위치에 로컬 저장된 후, 재전송이 자동으로 시도됩니다.
+
+3.1 실시간 시장 데이터 수집: udp_collector
+UDP 수집 서버는 실시간 시장 데이터를 수신하는 핵심 구성 요소입니다.
+3.1.1 배포 정보
+- 배포 경로: /sw/udp_collector
+- 포트 구성: 30101 ~ 30107
+UDP 포트
+데이터
+Databricks Bronze 테이블
+30101
+국내 주식 시세
+KRX1_RAW, KRXM_RAW
+30102
+시장 수급
+KRV1_RAW
+30103
+국내 지수
+KRI1_RAW, KRIM_RAW
+30104
+해외 지수
+KRG1_RAW, KRGM_RAW
+30105
+해외 주식 시세
+USC1_RAW, USM1_RAW
+30106
+뉴스/공시
+N_NEWS_MM_RAW, E900S_RAW
+30107
+VI 발동/장운영
+A3_RAW, MS_RAW
+
+3.1.2 수집 방식
+UDP 데이터 수집은 다음과 같은 3단 파이프라인 구조로 동작합니다.
+1) UDP 데이터 수신
+2) 큐 기반 버퍼링 (포트당 약 7,500건)
+3) 워커 스레드 기반 데이터 처리
+
+3.1.3 처리 방식
+위와 같이 수집된 데이터는 다음 방식으로 처리됩니다.
+
+&lt;UDP 수신 데이터 구조&gt;
+- 공통 처리 흐름: UDP 수신 → Queue → 디코딩 → 채널 분류 → 파서 호출 → JSONL/CSV 싱크 → ADLS 업로드
+- 1분 단위 JSONL 파일 로테이션 및 ADLS 업로드
+- 뉴스/공시(30106) 처리 파이프 라인
+원시 UDP 패킷 (바이너리)
+  ▼
+① MUDP 헤더 8바이트 파싱
+  │  data_cls_code[0]: 'N'=뉴스, 'E'/'F'=공시
+  │  comp_type[1]:     'Y'=LZO 압축, 'N'=비압축
+  │  content_mode[5]:  'O'=100기반 오프셋, 그 외=0기반 오프셋
+  ▼
+② LZO 압축 해제 (comp_type == 'Y'인 경우)
+  │  라이브러리: lzokay
+  │  body_bytes = lzokay.decompress(body_bytes)
+  ▼
+③ EUC-KR 디코딩 + 널바이트(\x00) 제거
+  ▼
+④-A 바이너리 구조체 파서 (1순위: binary_parser.py)
+  │  find_n_news_start()로 구조체 시작점 동적 탐색
+  │  N_NEWS_MM 구조체 순차 언패킹
+  ├─ 실패 시 ─▶
+  │
+④-B LZO 디컴프레서 폴백 (lzo_decompressor.py)
+  │  content_mode에 따라 고정 오프셋 슬라이싱
+  ▼
+⑤ 뉴스 본문 정규화 (fgubun 규칙 적용)
+  │  HTML 태그 제거 + fgubun별 substring/regex 적용
+  ▼
+⑥ JSONL/CSV 출력 → ADLS 업로드
+
+- ④ N_NEWS_MM 바이너리 구조체 (1순위 파서): binary_parser.py의 NewsMm 구조체. 헤더 8바이트 이후 본문을 순차적으로 고정 길이 필드로 언패킹합니다.
+필드
+길이(바이트)
+인코딩
+설명
+source
+1
+EUC-KR
+뉴스 소스 (1~4)
+fgubun
+3
+EUC-KR
+뉴스 구분 (F04, F05 등)
+kind
+4
+EUC-KR
+뉴스 종류
+date
+8
+EUC-KR
+날짜 (YYYYMMDD)
+time
+6
+EUC-KR
+시간 (HHmmss)
+sendid
+6
+EUC-KR
+발신 ID
+seqno
+5
+EUC-KR
+일련번호
+code
+6
+EUC-KR
+종목코드
+price
+7
+EUC-KR
+가격
+kospi
+1
+EUC-KR
+KOSPI 구분
+lmskind
+6
+EUC-KR
+LMS 종류
+kreason
+2
+EUC-KR
+사유 코드
+title
+150
+EUC-KR
+제목
+attached
+150
+EUC-KR
+첨부
+codelist
+60
+EUC-KR
+관련 종목 목록
+sendid2
+20
+EUC-KR
+발신 ID 2
+content
+30,000
+EUC-KR
+본문 내용
+구조체 시작점은 find_n_news_start()로 동적 탐색합니다. source가 '1234' 중 하나이고, fgubun이 F\d{2} 패턴이며, date/time이 각각 8자리/6자리 숫자인 위치를 찾습니다.
+
+- ④ LZO 디컴프레서 폴백 — content_mode별 글자단위 스키마: 바이너리 파서 실패 시 lzo_decompressor.py의 고정 오프셋 슬라이싱으로 폴백합니다.
+content_mode = 'O' (100 기준 오프셋):
+필드
+시작
+끝
+길이
+설명
+n_source
+100
+101
+1
+뉴스 소스
+n_fgbun
+101
+104
+3
+뉴스 구분
+n_kind
+104
+108
+4
+뉴스 종류
+n_date
+108
+116
+8
+날짜
+n_time
+116
+122
+6
+시간
+n_sendid
+122
+128
+6
+발신 ID
+n_seqno
+128
+133
+5
+일련번호
+n_code
+133
+139
+6
+종목코드
+n_title
+155
+280
+125
+제목
+n_content
+305
+끝
+가변
+본문
+content_mode != 'O' (0 기준 오프셋):
+필드
+시작
+끝
+길이
+설명
+n_source
+0
+1
+1
+뉴스 소스
+n_fgbun
+1
+4
+3
+뉴스 구분
+n_kind
+4
+8
+4
+뉴스 종류
+n_date
+8
+16
+8
+날짜
+n_time
+16
+22
+6
+시간
+n_sendid
+22
+28
+6
+발신 ID
+n_seqno
+28
+33
+5
+일련번호
+n_code
+33
+39
+6
+종목코드
+n_title
+55
+180
+125
+제목
+n_content
+205
+끝
+가변
+본문
+
+- ⑤ 뉴스 본문 정규화 (fgubun별)csv_adls_sink.py의 _normalize_news_content() 메서드에서 적용
+fgubun
+정규화 규칙
+설명
+F04
+txt[80:]
+앞 80자 잡음 제거
+F05
+^.*?\[ → [
+[ 이전 선행 제거
+F06
+txt[20:]
+앞 20자 제거
+F07
+seqno=99999면 ^.*?\제 → 제, 그 외 원문
+조건부
+F12
+txt[20:]
+앞 20자 제거
+F13
+txt[75:]
+앞 75자 제거
+F19, F23, F32, F34, F39
+code 유무에 따라 ^.*?\s 또는 ^.*?\s.*?\s 제거
+공백 기준 선행 제거
+F20
+^.*?\[ → [, 실패 시 ^\d+ 제거
+복합 조건
+F21, F22
+^.*?\[ → [
+[ 이전 선행 제거
+F28
+code 있음: ^\d*\s*\d* 제거 / code 없음: HTML 기점부터 태그 제거
+조건부
+F38
+txt[38:]
+앞 38자 제거
+F40
+code 없음: txt[50:] / code 있음: txt[80:]
+조건부
+F41
+^[a-zA-Z]\d+ 제거
+영문+숫자 접두사 제거
+F42
+txt[19:]
+앞 19자 제거
+F14, F29, F30
+^.*?\▶ → ▶
+▶ 이전 선행 제거
+F15, F16, F17
+^.*?\pdf → 이후
+PDF 선행 잡음 제거
+F18
+^.*?\[ → [
+[ 이전 선행 제거
+기타
+원문 반환
+정규화 없음
+공통적으로 모든 본문에 HTML 태그(&lt;...&gt;)가 먼저 제거됩니다.
+
+- 공시(E/F) 데이터 처리 차이
+MUDP 헤더 data_cls_code가 E 또는 F이면 공시로 분류합니다.
+공시는 뉴스와 달리 헤더 8바이트 + body를 결합하여 raw_data로 저장하고 뉴스는 body만 사용합니다.
+
+- 시세 전문 데이터 (30101~30105) 처리 파이프 라인
+시세 데이터는 LZO 압축 없이 문자열로 수신되며, TR 코드(첫 4자)로 패킷 타입을 식별한 후 고정 오프셋으로 슬라이싱합니다.
+(1) KRX1 — 국내 전종목 시세 (30101)
+필드
+시작
+끝
+길이
+타입
+설명
+code
+0
+12
+12
+STR
+전체 코드
+stock_code
+4
+12
+8
+STR
+종목코드
+operation_date
+13
+21
+8
+STR
+영업일 (YYYYMMDD)
+last_time
+21
+27
+6
+STR
+체결시각 (HHmmss)
+data_serial_no
+27
+31
+4
+STR
+데이터 일련번호
+current_price
+37
+49
+12
+INT
+현재가
+price_change_sign
+49
+50
+1
+CHAR
+등락부호 (+/-/=)
+price_difference
+50
+62
+12
+INT
+전일대비
+price_change_rate
+62
+74
+12
+FLOAT
+등락률
+accumulated_volume
+74
+89
+15
+INT
+누적거래량
+accumulated_trading_amount
+89
+104
+15
+INT
+누적거래대금
+time_classification
+마지막 1자
+-
+1
+CHAR
+시간 구분
+
+(2) KRV1 — 국내 시장 수급 (30102)
+필드
+시작
+끝
+길이
+타입
+설명
+code
+0
+12
+12
+STR
+전체 코드
+stock_code
+4
+12
+8
+STR
+종목코드
+operation_date
+12
+20
+8
+STR
+영업일
+last_time
+20
+26
+6
+STR
+시각
+current_price
+26
+38
+12
+FLOAT
+현재가
+accumulated_volume
+50
+65
+15
+INT
+누적거래량
+
+(3) KRI1 — 국내 지수 (30103)
+필드
+시작
+끝
+길이
+타입
+설명
+code
+0
+10
+10
+STR
+전체 코드
+index_code
+4
+10
+6
+STR
+지수코드
+operation_date
+10
+18
+8
+STR
+영업일
+last_time
+18
+24
+6
+STR
+시각
+market_code
+24
+25
+1
+CHAR
+시장 구분
+index_value
+25
+35
+10
+FLOAT
+지수값
+base_value
+35
+45
+10
+FLOAT
+기준값
+change_rate
+45
+55
+10
+FLOAT
+변동률
+volume
+55
+70
+15
+INT
+거래량
+
+(4) KRG1 — 해외 지수/환율 (30104)
+필드
+시작
+끝
+길이
+타입
+설명
+code
+0
+20
+20
+STR
+전체 코드
+symbol
+4
+20
+16
+STR
+심볼
+operation_date
+20
+28
+8
+STR
+영업일
+last_time
+28
+34
+6
+STR
+시각
+index_value
+40
+55
+15
+FLOAT
+현재값
+previous_value
+55
+70
+15
+FLOAT
+전일값
+change_value
+85
+100
+15
+FLOAT
+변동값
+change_rate
+100
+110
+10
+FLOAT
+변동률
+
+(5) USC1 — 해외 주식 시세 (30105)
+고정폭 + 정규식 혼합 방식. 앞부분 헤더는 고정폭, 뒷부분 숫자 필드는 정규식 추출.
+필드
+시작
+길이
+파싱 방식
+설명
+header
+0
+4
+고정
+USC1
+header1
+4
+2
+고정
+보조 헤더 1
+header2
+6
+2
+고정
+보조 헤더 2
+country
+8
+3
+고정
+국가코드
+symbol
+11
+12
+고정
+종목 심볼
+exch_id
+23
+3
+고정
+거래소 ID
+trade_date
+26
+8
+고정
+거래일
+trade_time
+34
+6
+고정
+거래시각
+trade_price
+-
+-
+정규식 r'-?\d+\.?\d*'
+현재가
+net_change
+-
+-
+〃
+전일대비
+pct_change
+-
+-
+〃
+등락률
+acc_volume
+-
+-
+〃
+누적거래량
+turnover
+-
+-
+〃
+거래대금
+
+(6) VI 발동 구조체 (고정폭 71바이트)
+필드
+시작
+끝
+길이
+타입
+설명
+code
+0
+6
+6
+CHAR
+종목코드
+market
+6
+7
+1
+CHAR
+1=정규장, 2=시간외
+vi_time
+7
+15
+8
+CHAR
+시간 (HH:MM:SS)
+vi_code
+15
+16
+1
+CHAR
+1=발동, 2=해제
+vi_list
+16
+17
+1
+CHAR
+1=정적VI, 2=동적VI, 3=정적&amp;동적
+vi_price
+17
+26
+9
+LONG
+VI 발동 가격
+vi_j_basep
+26
+35
+9
+LONG
+정적VI 발동 기준가격
+vi_d_basep
+35
+44
+9
+LONG
+동적VI 발동 기준가격
+j_grate
+44
+57
+13
+FLOAT(13,6)
+정적VI 발동 괴리율
+d_grate
+57
+70
+13
+FLOAT(13,6)
+동적VI 발동 괴리율
+vi_exch_cc
+70
+71
+1
+CHAR
+1=KRX, 2=NXT
+
+(7) 장운영 A3 구조체 (바이너리 36바이트)
+필드
+시작
+끝
+길이
+타입
+stx
+0
+1
+chr(byte)
+시작 문자 (0x02)
+data_gb
+1
+2
+ASCII
+데이터 구분 (A3)
+comp_gb
+3
+1
+chr(byte)
+압축 구분
+item_gb
+4
+1
+chr(byte)
+항목 구분
+jang_gb
+5
+1
+chr(byte)
+장 구분
+jang_no
+6
+3
+ASCII
+장 번호
+jang_time
+9
+8
+ASCII
+장 시간
+issue_cd
+17
+15
+ASCII
+종목코드
+ats_gb
+32
+1
+chr(byte)
+ATS 구분
+filler
+33
+2
+bytes
+예약
+etx
+35
+1
+chr(byte)
+종료 문자
+추가로 sidecar_rules.py + sidecar_rules.json에 의해 사이드카/CB/장운영 이벤트 라벨링이 수행됩니다. (JSONL의 sidecar_meta 필드에 저장)
+
+- 출력 형식:
+ADLS로 전송되는 것은 JSONL뿐이며 나머지 CSV/Raw Dump는 디버깅 용도입니다.
+싱크
+저장위치
+경로 패턴
+JSONL
+로컬 
+→ ADLS
+landing_buffer/port={port}/header_type={category}/ingest_date=YYYY-MM-DD/hour=HH/part-*.jsonl
+CSV (뉴스 파싱 성공)
+로컬
+landing_buffer/csv_daily/port=30106/news/news_ok_*.csv
+CSV (뉴스 파싱 에러)
+로컬
+landing_buffer/csv_daily/port=30106/news/news_err_*.csv
+CSV (공시)
+로컬
+landing_buffer/csv_daily/port=30106/disclosure/disc_*.csv
+CSV (장운영)
+로컬
+landing_buffer/csv_daily/port=30107/jang_ops/jang_ops_*.csv
+Raw Dump
+로컬
+landing_buffer/raw_dumps/port={port}/raw-*.bin
+* CSV는 3일 보관 후 자동 삭제 됩니다.
+
+3.1.4 장애 대응 메커니즘
+- 설정 파일: /sw/udp_collector/configs/env.json
+키
+개발
+운영
+adls.account_name
+saadbaiplatroot
+saadbaiplatrootprd
+adls.container
+marketdata
+marketdata
+adls.landing_prefix
+landing
+landing
+- 헬스 체크: TCP 8000
+- systemd 서비스 (VM 자동 시작): /sw/udp_collector/udp-listener.service
+- 서비스 설치/관리 (install-service.sh)
+sudo ./install-service.sh install     # 서비스 등록 + 활성화 + 시작
+sudo ./install-service.sh uninstall   # 서비스 중지 + 비활성화 + 삭제
+sudo ./install-service.sh status      # 서비스 상태 확인
+sudo ./install-service.sh logs        # 실시간 로그 tail
+
+3.2 SNS 및 외부 데이터 수집
+SNS 및 외부 데이터 수집은 Azure Container Apps 기반으로 운영됩니다. 외부 뉴스 및 SNS 데이터를 수집하여 Delta Lake에 적재하는 역할을 수행합니다.
+3.2.1 SNS-EXT (외부 수집 API)
+외부 플랫폼으로부터 데이터를 수집하는 API 서버입니다.
+주요 역할
+- 외부 데이터 수집
+- API 기반 데이터 전달
+- ADLS 저장 연계
+수집된 Perplexity 뉴스 데이터는 Databricks 처리 이후 잔고분석 종목 뉴스에 활용됩니다.
+Method
+Path
+용도
+스케줄
+POST
+/perplexity/monthly
+월간 종목 뉴스 수집
+매월 1일 01:00
+POST
+/telegram/collect
+Telegram 30분 수집
+30분마다
+POST
+/collect-quartr
+Quartr 어닝콜 수집
+매일 03:00
+POST
+/collect-ezar
+ETF 데이터 12종 수집 (EZAR)
+매일 12:00
+
+SNS-EXT 환경변수
+- 필수 목록 (앱 기동시)
+변수명
+용도
+SNS_API_KEY
+API 인증 공유키 (ext/int 동일)
+PPLX_API_KEY
+Perplexity API 키
+
+- Perplexity 관련
+변수명
+용도
+PPLX_API_KEY
+Perplexity API 키
+PPLX_MODEL
+사용 모델
+PPLX_TIMEOUT
+API 타임아웃(초)
+
+- Quartr 관련
+변수명
+용도
+QUARTR_API_KEY
+Quartr API 키
+
+- Telegram 관련
+변수명
+용도
+TG_API_ID
+Telegram App ID (정수)
+TG_API_HASH
+Telegram App Hash
+TG_PHONE
+인증 전화번호
+TG_CHANNELS
+채널 목록. 비어있으면 세션에서 자동 감지
+
+개별 수집기 ON/OFF 방법 (환경변수 조작)
+* Perplexity, Quartr API 호출 스케줄링을 ON/OFF 하는 별도의 플래그는 없습니다. Telegram은 환경변수로 비활성화 하여 수집을 스킵할 수 있습니다.
+
+Telegram 끄기/켜기
+- TG_API_ID를 0으로 변경하면 비활성화됩니다.
+
+3.2.2 SNS-INT (내부 스케줄러)
+sns-int는 외부 데이터 수집 작업을 스케줄링화는 내부 서비스입니다. sns-ext API를 스케줄에 따라 호출하고, 수집된 데이터를 ADLS에 업로드합니다.
+주요 역할
+- sns-ext API 호출
+- 수집 스케줄 관리
+- ADLS 업로드
+ADLS 저장 경로: landing/SNS/{perplexity|telegram|quartr}
+
+3.2.3 Azure Portal을 이용한 환경변수 설정 절차 (공통) 
+경로: Azure Portal &gt; Container Apps &gt; app-sns-ext-prd (또는 dev), app-sns-int-prd (또는 dev)
+왼쪽 메뉴 Application &gt; Containers 클릭
+Environment variables 섹션에서 해당 변수 값 수정
+Save &gt; Create 클릭 → 새 Revision 자동 배포
+
+3.2.3 Azure CLI를 이용한 환경변수 설정 절차 (공통) 
+# 예: Telegram OFF (PRD)
+az containerapp update \
+  --name app-sns-ext-prd \
+  --resource-group rg-aisvc-ext-dev \
+  --set-env-vars TG_API_ID=0
+
+# 예: Telegram ON (PRD)
+az containerapp update \
+  --name app-sns-ext-prd \
+  --resource-group rg-aisvc-ext-dev \
+  --set-env-vars TG_API_ID=9249602
+
+# 예: Perplexity OFF
+az containerapp update \
+  --name app-sns-ext-prd \
+  --resource-group rg-aisvc-ext-dev \
+  --set-env-vars PPLX_API_KEY=DISABLED
+
+# 예: Quartr OFF
+az containerapp update \
+  --name app-sns-ext-prd \
+  --resource-group rg-aisvc-ext-dev \
+  --set-env-vars QUARTR_API_KEY=DISABLED
+
+Window Powershell &gt; az login &gt; Bastion VM 접속 후 진행 (문서 6페이지 참고)
+
+3.3 데이터 저장소 구조
+수집된 데이터는 ADLS와 데이터 레이어 구조를 통해 저장되고, 이후 데이터 처리 및 분석 과정에서 활용됩니다.
+3.3.1 ADLS 구조
+AI 시황 시스템은 Azure Delta Lake Storage를 데이터 저장소로 사용합니다.
+주요 저장 영역은 landing/ 입니다.
+- 데이터 유형별 주요 경로
+landing/port=301xx/            실시간 시장 데이터
+landing/SNS/                   SNS 수집 데이터
+landing/snd/                   시황 요약 발송 데이터
+* Landing 영역은 원천 데이터 저장 영역으로 사용되며 이후 Databricks 파이프라인에서 처리됩니다.
+
+3.3.2 데이터 레이어 구조
+Databricks에서는 데이터 레이크 아키텍처를 기반으로 다음과 같은 레이어 구조를 사용합니다.
+데이터는 처리 단계에 따라 다음과 같은 Bronze / Silver / Gold 계층으로 관리됩니다.
+- Bronze Layer: 원천 데이터 저장
+- Silver Layer: 가공 및 정제 데이터
+- Gold Layer: 시황 생성 데이터
+
+4. 데이터 처리 및 AI 생성
+데이터 처리 작업은 Azure Databricks 환경에서 수행됩니다.
+수집된 데이터는 Databricks Job을 통해 정제 및 분석되며, 시황 생성에 필요한 데이터로 가공됩니다.
+
+4.1 Databricks Job 설정
+Databricks는 데이터 수집 이후 데이터 가공 및 시황 생성 파이프라인을 수행합니다.
+4.1.1 STREAM-AIM-BRZ-INGEST
+실시간 데이터 수집 Job입니다.
+항목
+설정값
+실행주기
+상시 15분마다
+Task(실행 순서)
+00_ingest_bronze(병렬), 10_news_silver_aoai(병렬)
+- [장중 운영 방식 (영업일, 09:00~15:30)]
+→ 스트리밍 모드 진입, 노트북이 종료되지 않고 장 종료까지 연속 실행
+→ 15분마다 트리거가 새 실행을 시도하지만 이전 run이 실행 중이면 큐잉
+- [장외/휴일 운영 방식]
+→ 배치 모드 (availableNow로 현재 데이터만 처리 후 즉시 종료)
+→ 15분마다 트리거 → 처리 → 종료 반복
+
+4.1.2 10MIN-AIM-SLV-NEWS-DISCLOSURE
+뉴스 및 공시, 종목 뉴스 데이터를 처리하는 Job입니다.
+항목
+설정값
+실행주기
+상시 10분마다
+Task(실행 순서)
+13_disclosure_silver (병렬), 20_news_silver_aoai (병렬), 70_stock_news ← depends on 13, 20
+
+4.1.3 30MIN-AIM-SLV_GLD-MACRO_THEME_EVENTS
+주요 국내 시황 데이터 생성 파이프라인입니다. Job 실패 시 Email 알림이 발송됩니다.
+항목
+설정값
+실행주기
+평일 07~17시, 30분마다
+Task(실행 순서)
+11_kri1_silver (병렬), 12_usc1_silver (병렬), 40_market_events (병렬)51_theme_market_v2← depends on 11, 12, 4060_macro_market ← depends on 51
+65_macro_market_export ← depends on 60
+
+4.1.4 10MIN-AIM-GLD-BREAKING-MARKET
+긴급 시황 생성 Job입니다. 초기 상태는 Pause이며 STREAM-AIM-SLV-TRIGGER Job의 트리거로 작동합니다.
+항목
+설정값
+실행주기
+초기상태 Pause이며, Active시 평일 08~18시, 10분마다
+Task(실행 순서)
+80_urgent_market
+
+4.1.5 STREAM-AIM-SLV-TRIGGER
+긴급 시황 생성 Job의 트리거입니다. Job이 실행하는 81_urgent_market_trigger 스크립트에서 스트리밍 모드를 판단합니다.
+항목
+설정값
+실행주기
+평일 09시 시작,
+Task(실행 순서)
+81_urgent_market_trigger
+81_urgent_market_trigger 스크립트에서 스트리밍 모드를 판단합니다.
+영업일, + 장 운영 시간: 스트리밍 모드
+그 외 시간: 즉시 종료
+
+4.1.6 DAILY-DI-BRZ-SFTP_UNIFIED
+SFTP 기반 데이터 수집 Job입니다.
+항목
+설정값
+실행주기(Trigger)
+파일 도착 시 자동 (URL: 
+abfss://marketdata@saadbaiplatrootprd.dfs.core.windows.net/landing/rcv/)
+Task(실행 순서)
+02_sftp_ingest_unified
+
+4.1.7 DAILY-DI-BRZ-MASTER-STOCK
+마스터 데이터 수집 Job입니다.
+항목
+설정값
+실행주기
+평일 07:30, 17:30, 19:30
+Task(실행 순서)
+01_master_ingest_krm (병렬), 01_master_ingest_usm1 (병렬)
+4.2 데이터 가공 및 스코어링
+데이터 처리 과정은 다음과 같은 단계로 구성됩니다.
+4.2.1 데이터 수집 (Bronze Layer)
+Bronze Layer에 원천 데이터 적재
+원천 데이터
+테이블명
+수집 방식
+사용 서비스
+실시간 뉴스
+N_NEWS_MM_RAW
+포트 30106 스트리밍
+최근이슈(A200), 테마시황(A300), 종목시황(A400), 긴급시황(A000)
+국내 주식 시세
+KRX1_RAW
+포트 30101 스트리밍
+테마시황(A300), 종목시황(A400)
+국내 지수
+KRI1_RAW
+포트 30103 스트리밍
+주요국내시황(A100), 긴급시황 트리거(A000)
+해외 지수
+KRG1_RAW
+포트 30104 스트리밍
+주요국내시황(A100)
+테마 코드
+EPDIW_IFS_TMA_CD
+SFTP 일배치
+테마시황(A300)
+테마 종목 매핑
+EPDIW_IFS_TMA_IEM
+SFTP 일배치
+테마시황(A300)
+종목 마스터
+EPDIW_STK_IEM
+SFTP 일배치
+종목시황(A400)
+종목 시총/마스터
+KRXM_RAW
+포트 30101 배치
+테마시황(A300)
+
+4.2.2 데이터 가공 (Silver Layer)
+뉴스 데이터에 대해 LLM 기반 스코어링을 수행하고, 지수 데이터를 가공합니다.
+- 뉴스 LLM 스코어링
+→ 뉴스별 광고성(GPT01), 경제성(GPT02), 시장성(GPT03), 품질(GPT04) 점수 산출
+→ 업종 분류(GPT05~GPT08) 자동 부여
+→ 출력: N_NEWS_MM_SILVER
+ - 지수 데이터 가공: KRI1_SILVER(국내지수), KRG1_SILVER(해외지수)
+4.3 AI 시황 생성 항목 및 기준
+가공된 데이터를 기반으로 Azure OpenAI(GPT-4.1)를 활용하여 시황 콘텐츠를 자동 생성합니다.
+주요 생성 콘텐츠는 다음과 같고, Gold Layer에서 다음과 같은 시황 데이터가 생성됩니다.
+
+4.3.1 AI 시황 생성 항목 (Gold Layer)
+1) 주요 국내 시황 (A100_MACRO_MARKET)
+국내 증시 전반의 흐름과 투자 심리를 종합적으로 분석하여 제공하는 시황입니다.
+
+2) 최근 이슈 (A200_MARKET_EVENTS)
+시장에 영향을 준 뉴스 및 이벤트를 기반으로 생성되는 시황 콘텐츠입니다.
+
+3) 주요 테마 및 업종 (A300_THEME_MARKET)
+시장 내 주요 테마 및 업종 동향을 중심으로 생성되는 시황입니다.
+
+4) 종목 시황 (A400_STOCK_NEWS)
+개별 종목을 기준으로 생성된 시황입니다.
+
+5) 긴급 시황 (A000_URGENT_MARKET)
+시장 변동성이 급격하게 확대되는 경우 생성되는 특수 시황 콘텐츠입니다. 
+
+6) 국내 시황 요약 (A100_MACRO_SUMMARY)
+주요 국내 시황 내용을 요약하여 제공하는 콘텐츠입니다.
+
+4.3.2 데이터 활용 범위 (원천 데이터 정의)
+AI 시황 시스템에서는 다음과 같은 데이터를 기반으로 시황 콘텐츠를 생성합니다.
+1) 뉴스 데이터
+실시간 뉴스 데이터를 수집하며 다음 기준으로 필터링하여 사용합니다.
+- 광고성 점수 &lt; 70 &amp; 품질 점수 ≥ 50
+
+2) KRX 시세 데이터
+KRX 시장 데이터를 실시간으로 수집합니다
+- 종목 시세: KRX1_RAW
+- 지수 데이터: KRI1_RAW
+
+3) 테마 및 업종 데이터
+테마 및 업종 관련 데이터를 일 단위로 갱신되며 시황 분석에 활용됩니다.
+- EPDIW_IFS_TMA_CD, EPDIW_IFS_TMA_IEM
+
+4) 해외 지수 데이터
+해외 지수 데이터는 실시간으로 수집되며 Z-Score 기준 상위 10개 지수를 표시합니다.
+- KRG1_RAW
+
+5. 운영 관리 및 장애 대응
+5.1 인프라 및 서비스 관리
+5.1.1 ADLS 다운로더 및 전송 서버
+ADLS 다운로더 및 전송 서버는 AI 시황 생성 결과를 외부 시스템으로 전달하기 위한 파일 전송 API 서버입니다.
+1) 구성
+- 배포 경로: /sw/adls_downloader
+- systemd 서비스: adls-sender-api (VM 재부팅 시 자동 시작)
+sudo systemctl start adls-sender-api    # 시작
+sudo systemctl stop adls-sender-api     # 중지
+sudo systemctl status adls-sender-api   # 상태
+sudo journalctl -u adls-sender-api -f   # 로그
+
+2) 환경 변수
+- 환경변수(systemd 서비스 파일에 정의)
+변수명
+개발
+운영
+설명
+ADLS_ACCOUNT
+saadbaiplatroot
+saadbaiplatrootprd
+Storage Account
+ADLS_CONTAINER
+marketdata
+marketdata
+컨테이너
+ADLS_PATH
+landing/snd
+landing/snd
+ADLS 경로
+LOCAL_OUTPUT_DIR
+/data/landing/snd
+/data/landing/snd
+로컬 다운로드 경로
+EAI_HOME
+/sw/eai/batchagent/bin
+(운영 경로 확인)
+eaiBatch 위치
+API_PORT
+5050
+5050
+API 포트
+
+3) AI 시황 데이터 흐름
+Databricks 65_macro_summary_export.py 완료 시 자동 호출:
+Databricks → POST http://&lt;LB_IP&gt;:5050/api/macro-summary/trigger (date 파라미터)
+* POST URL은 운영 구조 기준입니다. (개발과 Load Balance 차이 유무)
+
+5.1.2 VM 서비스 시작/중지 체크리스트
+VM 재부팅 시 다음 절차를 확인합니다. (양쪽 수집서버 모두 수행)
+순서
+서비스
+확인 명령
+자동 시작 여부
+미실행 시 조치
+1
+UDP Listener
+sudo systemctl status udp-listener
+systemctl enable 등록 시 자동
+sudo ./install-service.sh install
+2
+ADLS Sender API
+sudo systemctl status adls-sender-api
+systemctl enable 등록 시 자동
+sudo systemctl start adls-sender-api
+3
+헬스 체크
+curl localhost:8000/health (UDP) /
+curl localhost:5050/health (ADLS)
+-
+위 서비스 재시작
+* 두 서비스 모두 systemd enable 등록이 완료되어 있으면, VM 재부팅 시 자동으로 시작됩니다.
+5.1.3 인프라 구성 현황
+구분
+구성요소
+사양 및 비고
+데이터 처리
+Azure Databricks
+-
+AI / LLM
+Azure OpenAI
+APIM(API Management) 경유 호출
+저장소
+ADLS / Delta Lake
+-
+애플리케이션
+Container Apps
+Backend API 및 Frontend 웹 (app-trend-int-dev/prd)
+DevOps
+CI / CD
+GitHub Enterprise Server (GHES) / Azure Container Registry (ACR)
+
+5.2 운영 환경 분기 및 배포 절차
+5.2.1 개발에서 운영환경 반영 및 테스트
+개발/운영 배포 구조
+- 현재 배포 구조는 노트북을 Databricks Workspace에서 직접 개발하고, Git으로 버전 관리하는 구조입니다. 리포에는 CI/CD 설정이 없습니다. (GitHub Actions, Databricks Asset Bundles, 배포 스크립트 부재)
+
+1. 개발 환경 구조
+- 노트북들은 Databricks Workspace의 /Workspace/Shared/notebook/ 경로에 배치되어 있습니다.
+/Workspace/Shared/notebook/
+├── data_ingest/          (SFTP, Auto Loader, Perplexity, Telegram 등)
+├── ai_market_service/
+│   ├── silver/           (뉴스 가공)
+│   └── gold/             (시황, 매크로, 긴급알림 등)
+├── balance_analysis_ai/
+│   ├── silver/           (신호 생성, 지표 계산)
+│   └── gold/             (포트폴리오 분석, 산업전망, 매매일지)
+└── utils/                (alert, aoai_client, pipeline_logger 등 공통)
+
+2. 개발/운영 환경 분리 방법
+- 현재 노트북 코드에서 환경 분리는 dbutils.widgets 파라미터로 처리됩니다:
+dbutils.widgets.text("account_name", "saadbaiplatroot")    # 개발 기본값
+dbutils.widgets.text("account_name", "saadbaiplatrootprd")    # 운영 기본값
+
+3. 개발에서 코드 테스트 방법
+Databricks Workspace &gt; /Workspace/Shared/notebook/ &gt; 해당 노트북 열기
+상단 Cluster 연결 (Attach) — 개발용 클러스터 선택
+셀별로 Shift+Enter로 실행하며 결과 확인
+컴퓨팅 자원:
+용도
+리소스 유형
+권장 설정
+노트북 인터랙티브 개발
+All-Purpose Cluster
+단일노드 또는 소규모 (비용 절감)
+SQL 쿼리 테스트
+SQL Warehouse
+사용한 만큼만 과금
+Job 운영 실행
+Job Cluster (자동 생성/소멸)
+Workflow에서 자동 관리
+
+4. 개발에서 운영 반영 절차
+- 현재 코드에 자동화된 배포 파이프라인이 없으므로, 다음 수동 절차를 따라야 합니다:
+
+Step 1: 개발 환경에서 코드 완성 및 테스트
+[로컬 IDE]  →  [Git repo: dbx-notebooks (dev 브랜치)] → [Databricks 개발 Workspace 셀 실행, 테스트]
+
+Step 2: Git 커밋 및 Push
+Step 3: 운영 Workflow 파라미터 확인
+운영 Workflow에서는 파라미터를 오버라이드합니다
+변수
+값 (dev → prd)
+account_name
+saadbaiplatroot → saadbaiplatrootprd
+카탈로그 (테이블 조회하는 모든 구간)
+nh_ai → nh_ai_prd
+BACKEND_URL (MTS BACKEND URL, AI 시황 Gold 스크립트 한정)
+https://app-trend-int-dev.purplerock-9761bdbb.koreacentral.azurecontainerapps.io→ https://app-trend-int-prd.ambitiousbush-1e7439b2.koreacentral.azurecontainerapps.io
+COLLECTOR_API_URL (수집서버 URL, 65_macro_summary, 10_export_trigger 한정)
+https://10.129.45.5:5050/api/...→ https://10.129.77.5:5050/api/...
+Step 4: 운영 Workspace에 반영
+- Shared 폴더 내 스크립트 수동 복사
+
+5.2.2 결과 수정 및 웹페이지 반영 방법
+AI 시황 결과가 MTS에 표시되기까지의 데이터 흐름은 다음과 같습니다:
+Gold 테이블 값 수정  →  refresh API 호출  →  Redis 캐시 갱신 →  MTS 화면 반영
+
+AI 시황 결과는 Databricks Gold 테이블에 저장되어 있고, 백엔드가 이를 Redis에 캐싱하여 MTS에 제공합니다. 결과를 수정하려면 Gold 테이블의 값을 수정한 뒤, 반드시 refresh API를 호출해야 MTS 화면에 반영됩니다.
+
+방법 1: Databricks 노트북에서 수정
+1-1. Gold 테이블 값 수정
+Databricks Workspace 접속
+SQL Editor 열기 (또는 노트북에서 SQL 셀 사용)
+수정 대상 데이터 확인:
+해당 행의 값 수정
+-- 예: 특정 행의 본문 내용 수정
+UPDATE nh_ai_prd.gold.a100_macro_market
+SET summary = '수정된 시황 내용...'
+WHERE date = '2026-03-23' AND id = '대상_ID';
+
+-- 예: 특정 행 삭제
+DELETE FROM nh_ai_prd.gold.a300_theme_market
+WHERE date = '2026-03-23' AND theme_name = '삭제할_테마명';
+
+1-2. refresh API 호출 (필수)
+Gold 테이블 수정 후, 반드시 백엔드 refresh API를 호출해야 MTS에 반영됩니다.
+Databricks 노트북 셀에서 실행 (Gold 스크립트의 마지막 셀):
+import requests
+
+# 개발 환경
+url = "https://app-trend-int-dev.purplerock-9761bdbb.koreacentral.azurecontainerapps.io/api/market/refresh"
+
+# 운영 환경
+# url = "https://app-trend-int-prd.ambituousbush-1e7439b2.koreacentral.azurecontainerapps.io /api/market/refresh"
+
+# 수정한 카테고리에 맞게 지정
+response = requests.post(url, json={"category": "macro"}, timeout=15)
+print(response.json())
+
+1-3. refresh 후 동작
+백엔드(trend-int)가 refresh 요청을 수신하면:
+해당 카테고리 오늘자 Redis 캐시 삭제
+Databricks Gold 테이블에서 수정된 데이터를 재조회
+Redis에 새 데이터 저장 (TTL: 자정까지)
+urgent인 경우 SSE로 MTS에 즉시 푸시
+
+Ex) POST /api/market/refresh  { "category": "macro" }
+  → Redis 오늘자 macro 키 삭제
+  → nh_ai_prd.gold.a100_macro_market 재조회
+  → Redis에 새 데이터 저장
+  → MTS가 다음 API 호출 시 수정된 데이터 수신
+
+방법 2: 관리자 대시보드에서 수정
+관리자 대시보드에서 Gold 테이블의 개별 행을 UI로 직접 수정할 수 있으며, 저장 시 자동으로 refresh가 호출됩니다. (권한 ops 또는 admin 역할 필요)
+1. 사이드바 &gt; 데이터 관리 &gt; AI 시황 데이터 관리
+2. 상단에서 수정할 카테고리 테이블 선택
+3. 날짜/조건으로 필터링하여 수정할 행 찾기
+4. 해당 행 클릭 후 우측의 작업 아이콘으로 내용 편집 (또는 삭제)
+5. 수정 이후 저장 버튼 클릭
+
+저장(수정/삭제) 시 관리자 대시보드가 자동으로 다음을 수행합니다. 
+  → Databricks에 UPDATE/DELETE SQL 실행
+  → 성공 시 POST MARKET_REFRESH_API_URL (백엔드 refresh 자동 호출)
+  → Redis 캐시 갱신
+→ 화면에 "캐시 갱신 완료" 또는 "캐시 갱신 실패" 토스트 표시
+
+방법 1과 달리 수동으로 refresh를 호출할 필요가 없습니다. 저장 시 테이블 → 카테고리 자동 매핑되어 refresh가 호출됩니다. 환경별 refresh 대상 URL은 관리자 대시보드의 환경변수 MARKET_REFRESH_API_URL로 설정됩니다
+환경
+MARKET_REFRESH_API_URL
+개발
+https://app-trend-int-dev.purplerock-9761bdbb.koreacentral.azurecontainerapps.io
+운영
+https://app-trend-int-prd.ambitiousbush-1e7439b2.koreacentral.azurecontainerapps.io
+
+* 주의사항
+방법 1 사용 시 refresh 호출을 실행해야 MTS에 반영됩니다. Gold 테이블만 수정하고 refresh를 호출하지 않으면 MTS에 반영되지 않습니다. 이 경우, 다음 자정 자동 갱신까지 기다려야 합니다.
+자정 자동 갱신: 매일 KST 자정에 백엔드가 전체 Redis 캐시를 클리어하고 새로 프리로드합니다. refresh를 놓쳤더라도 다음 날에는 자동 반영됩니다.
+긴급 시황(urgent)은 SSE 브로드캐스트를 통해 MTS에 실시간 푸시됩니다. 다른 카테고리는 MTS가 다음 API 호출 시 갱신된 데이터를 수신합니다.
+관리자 대시보드의 MARKET_REFRESH_API_URL이 미설정이면 수정은 Databricks에 반영되지만 캐시가 갱신되지 않아 MTS에 즉시 반영되지 않습니다. 배포 시 반드시 설정을 확인하세요.
+
+5.3 Databricks Job 모니터링 및 관리
+5.3.1 스케줄러 설정 및 주의사항
+
+Job 스케줄 설정 방법은 아래와 같습니다.
+Databricks Workspace 접속 &gt; 좌측 메뉴 Jobs &amp; Pipelines클릭
+대상 Job 선택 &gt; Schedules &amp; Triggers 탭에서 Trigger와 진행 상태 설정
+주요 설정 항목: 
+Schedule type: Scheduled (Cron), File arrival, Table update, Continuous
+Cron expression: Quartz Cron 형식 사용
+Timezone: Asia/Seoul
+Trigger status: Active / PAUSED
+* 주의사항
+1. 10MIN-AIM-GLD-BREAKING_MARKET은 반드시 PAUSED 상태로 유지
+10MIN-AIM-GLD-BREAKING_MARKET 은 독립적인 크론 스케줄로 실행되는 일반 배치 Job이 아닙니다. STREAM-AIM-SLV-TRIGGER가 KOSPI 등락률 4% 이상을 감지했을 때만 API를 통해 자동으로 활성화되는 트리거 기반 Job입니다.
+
+2. 노트북 자체 안전장치 (영업일/시간 체크)
+모든 배치 노트북은 내부에 이중 안전장치를 갖추고 있습니다:
+- 영업일 체크: `is_business_day(spark, today_date)` 함수로 nh_ai_prd.bronze.ECBSW_BAS_SLS_DD 테이블을 조회하여 비영업일이면 즉시 종료
+- 배치 시간 윈도우 체크: BATCH_START_HHMM~BATCH_END_HHMM 범위 밖이면 즉시 종료
+
+3. 스케줄 변경 시 확인 사항
+확인 항목
+설명
+Max concurrent runs
+스트리밍 Job은 1로 설정. 배치 Job도 특별한 이유 없으면 1 권장
+Cluster 설정
+Job 전용 클러스터(Job Cluster) 사용 권장. All-Purpose Cluster 공유 시 자원 경합 발생 가능
+Retry policy
+LLM 호출 실패 가능성을 고려하여 Retry 1~2회 설정 가능
+Alert/Notification
+Job 실패 시 이메일/Teams 알림 설정 권장
+
+5.3.2 실행 조건값 및 로직 수정
+1) 노트북 실행조건
+ai_market_service의 각 노트북은 다음 3단계 실행 조건 체크를 거칩니다:
+1단계: 영업일 체크 (is_business_day) → 비영업일이면 즉시 종료
+2단계: 배치 시간 윈도우 체크 → 시간 범위 밖이면 즉시 종료
+3단계: 장 운영 시간 조회 (A3 기반) → 장전/장중/장후 세션 판단, 로직 분기
+이 조건값들은 각 노트북 코드 상단의 상수와 공통 유틸리티(market_hours.py)에서 정의
+
+2) 배치시간 윈도우
+각 배치 노트북이 실행 가능한 KST 시간 범위는 아래와 같습니다. 이 범위 밖에서 Job이 실행되면 노트북이 자동 스킵됩니다.
+노트북
+BATCH_START_HHMM
+BATCH_END_HHMM
+파일 내 위치
+40_market_events
+(없음)
+(없음)
+영업일 체크만 수행
+50_theme_market
+"0830"
+"1630"
+line 93~94
+60_macro_market
+"0830"
+"1630"
+line 41~42
+65_macro_summary_export
+"0830"
+"1630"
+line 58~59
+70_stock_news
+"0900"
+"1700"
+line 40~41
+80_urgent_market
+"0830"
+"1630"
+line 40~41
+수정 방법: 해당 노트북 파일 상단에서 상수값을 직접 변경합니다.
+동작 원리: 노트북 실행 시 현재 KST 시각(current_hhmm)이 범위 내인지 문자열 비교로 판단합니다.
+3) 뉴스 수집 시간 범위
+시황 생성 시 참조할 뉴스의 시간 범위를 결정하는 값입니다.
+노트북
+cutoff 기준
+현재 값
+파일 내 위치
+설명
+40_market_events
+현재 시각 - N분
+30분
+line 168
+timedelta(minutes=30)
+60_macro_market
+현재 시각 - N시간
+1시간
+line 173
+timedelta(hours=1) (뉴스가 아닌 A200 필터)
+70_stock_news
+현재 시각 - N분
+40분
+line 321
+timedelta(minutes=40)
+80_urgent_market
+현재 시각 - N시간
+1시간
+line 246
+timedelta(hours=1)
+수정 방법: 해당 라인에서 timedelta 파라미터를 변경합니다.
+
+4) 뉴스 품질 필터링 점수
+LLM이 뉴스에 부여한 점수를 기준으로 시황 생성에 사용할 뉴스를 필터링합니다.
+노트북
+GPT01 광고점수
+GPT03 증시점수
+GPT04 품질점수
+파일 내 위치
+40_market_events
+&lt; 70
+&gt;= 50
+&gt;= 50
+line 174~176
+50_theme_market
+&lt; 70
+-
+-
+line 461~465
+80_urgent_market
+&lt; 70
+&gt;= 70
+-
+line 256~257
+
+5) 공통 유틸리티: 장 운영 시간 조회 (market_hours.py)
+파일 위치: ‘/Workspace/Shared/notebook/utils/market_hours.py’
+각 노트북에서 `%run /Workspace/Shared/notebook/utils/market_hours`로 로드하여 사용합니다.
+장 시간 판단 우선순위는 다음과 같습니다.
+
+get_market_hours(spark, trade_date) 함수가 장 시작/종료 시간을 반환하는 우선순위:
+1순위: 특수일 엑셀 파일 (special_market_hours.xlsx)
+2순위: A3 테이블 (nh_ai_prd.bronze.A3_RAW) - 실시간 장운영 이벤트
+3순위: 기본값 (09:00 ~ 15:30)
+
+- 장 시작/종료 시간이 변경되는 특수일은 엑셀 파일에 사전 등록합니다.
+파일 경로: /Workspace/Shared/notebook/utils/special_market_hours.xlsx (또는 .csv)
+
+- A3 테이블(nh_ai_prd.bronze.A3_RAW)의 이벤트 코드로 장 시작/종료를 동적으로 판단합니다
+영향 범위: get_market_hours()를 호출하는 모든 노트북에 영향:
+60_macro_market → market_session 판단 (장전/장중/장후 로직 분기)
+70_stock_news → market_close_hhmmss 계산 (종가 시점 판단)
+81_urgent_market_trigger → is_market_open() (스트리밍 유지/종료 판단)
+80_urgent_market → 코드 내부에서 직접 사용하지는 않으나 is_business_day() 사용
+
+- 기본값은 A3 테이블 데이터가 없을 때의 폴백(fallback)입니다. 통상적으로 수정할 필요가 없지만, KRX 정규장 시간이 변경되면 여기를 수정합니다.
+# market_hours.py line 107~108
+DEFAULT_MARKET_OPEN = "0900"   # 장 시작 09:00
+DEFAULT_MARKET_CLOSE = "1530"  # 장 종료 15:30
+
+- 영업일 판단 (is_business_day)은 nh_ai_prd.bronze.ECBSW_BAS_SLS_DD을 사용합니다. 해당 테이블에 기준일자 데이터가 없으면 영업일로 가정합니다(return True). 따라서 ECBSW_BAS_SLS_DD 테이블의 데이터가 최신 상태로 유지되어야 합니다.
+
+5.3.3 알람 기능 및 수신자 설정
+Job notifications와는 별개로 로직 자체에서 AMS(Alert Management System) 기반의 에러 알림 유틸리티를 사용합니다.
+1) 알람 시스템 개요
+- 유틸리티 파일: /Workspace/Shared/notebook/utils/alert.py
+- 통신 방식: TCP 소켓을 통해 AMS 서버(172.20.2.43:5015)로 627바이트 고정길이 패킷 전송
+- 발송 채널: 사내 메신저 쪽지, SMS
+
+2) 수신자 설정 방법
+수신자 설정은 Databricks 테이블 nh_ai_prd.config.ALERT_CONFIG에서 관리합니다. alert.py 최초 로드 시 테이블이 비어있으면 다음 기본값이 자동 시드됩니다.
+레벨
+수신자
+채널
+활성화
+WARN
+["admin_a"]
+["messenger"]
+O
+ERROR
+["admin_a", "admin_b"]
+["messenger"]
+O
+CRITICAL
+["admin_a", "admin_b", "admin_c"]
+["messenger", "sms"]
+O
+admin_a, admin_b, admin_c는 플레이스홀더입니다. 실제 담당자 ID로 변경해야 합니다. 수신자 정보는 메시지 본문에 ‘TO: admin_a, admin_b’ 형태로 포함되어 전송됩니다.
+
+3) 프로그램 코드에 알람 추가하는 방법
+기본적으로 노트북 상단에서 alert 유틸리티를 로드한 후 간편 헬퍼 함수를 호출합니다.
+1. 유틸리티 로드 (노트북 상단에 추가)
+# MAGIC %run /Workspace/Shared/notebook/utils/alert
+
+# 2-a. 정보성 로그 (알림 발송 안됨)
+log_info(spark, "A100", "Backend API called: 200")
+
+# 2-b. 성공 로그 (알림 발송 안됨)
+log_success(spark, "A100", f"A100_MACRO_MARKET 적재 완료: {count}건")
+
+# 2-c. 경고 로그 (설정에 따라 알림 발송)
+log_warn(spark, "A100", "Backend API 호출 실패: timeout",
+         error_type="API_CALL_FAIL")
+
+# 2-d. 에러 로그 (알림 발송됨)
+log_error(spark, "A100", "매크로 시황 생성 실패 - JSON 파싱 실패",
+          error_type="JSON_PARSE_FAIL",
+          details=f"LLM 응답 길이: {len(resp)}")
+
+# 2-e. 크리티컬 로그 (알림 + SMS 발송)
+log_critical(spark, "A100", "Spark 세션 장애",
+             error_type="SYSTEM_FAIL",
+             details=f"에러: {e}")
+
+헬퍼 함수를 요약하면 아래와 같습니다.
+함수
+레벨
+알림 발송
+파라미터
+log_debug(spark, source, message)
+DEBUG
+X
+source, message
+log_info(spark, source, message)
+INFO
+X
+source, message
+log_skip(spark, source, message)
+SKIP
+X
+source, message
+log_warn(spark, source, message, error_type, details)
+WARN
+설정에 따라
++ error_type, details (선택)
+log_error(spark, source, message, error_type, details)
+ERROR
+O
++ error_type (필수), details (선택)
+log_critical(spark, source, message, error_type, details)
+CRITICAL
+O
++ error_type (필수), details (선택)
+log_success(spark, source, message)
+SUCCESS
+X
+source, message
+
+새로운 서비스를 등록할 경우 alert.py의 _SERVICE_REGISTRY에 항목을 추가합니다.
+
+4) 알림 발송 이력 확인
+모든 알림 발송 이력은 nh_ai_prd.logs.ALERT_EVENTS 테이블에 기록됩니다.
+
+5) 현재 에러 알림 적용 현황 (log_warn / log_error 적용 현황)
+노트북
+테이블
+함수
+에러 유형
+상황
+60_macro_market
+A100
+log_error
+JSON_PARSE_FAIL
+LLM 응답 JSON 파싱 완전 실패
+60_macro_market
+A100
+log_error
+EMPTY_CONTENT
+JSON 파싱됐으나 content 필드 비어있음
+60_macro_market
+A100
+log_warn
+API_CALL_FAIL
+Backend refresh API 최종 호출 실패
+40_market_events
+A200
+-
+-
+INFO/SUCCESS만 사용
+50_theme_market
+A300
+log_warn
+EMPTY_ISSUE_CONTENT
+테마별 빈 이슈 콘텐츠 생성
+50_theme_market
+A300
+log_warn
+REALTIME_UPDATE_FAIL
+실시간 변동률 필드 업데이트 실패
+50_theme_market
+A300
+log_warn
+API_CALL_FAIL
+Backend refresh API 최종 호출 실패
+70_stock_news
+A400
+log_warn
+SUMMARY_PARSE_FAIL
+요약 파싱 실패 (개별 뉴스)
+70_stock_news
+A400
+log_warn
+API_CALL_FAIL
+Backend refresh API 최종 호출 실패
+80_urgent_market
+A000
+log_warn
+API_CALL_FAIL
+Backend refresh API 최종 호출 실패
+
+5.3.4 모니터링 및 비상 제어 (Kill Switch)
+- 대상: Azure OpenAI API (APIM Gateway)
+- 상황: API 장애, 비용 폭주, 보안 이슈 등 긴급 중단이 필요한 경우
+- 조치 방법:
+1) AI 시황만 중단
+from apim_killswitch import shutdown_trend_service, resume_trend_service
+shutdown_trend_service()   # 중단
+resume_trend_service()     # 재개
+
+2) 전체 서비스 중단 (시황 + 잔고분석)
+from apim_killswitch import shutdown_all_services, resume_all_services
+shutdown_all_services()    # 전체 중단
+resume_all_services()      # 전체 재개
+* 로그: nh_ai_prd.logs.KILLSWITCH_EVENTS 테이블에 자동 기록
+
+5.3.5 Databricks Job 및 서비스 실행 확인
+AI 시황 데이터 처리 및 시황 생성 작업은 Databricks Job을 통해 자동 실행됩니다. (3.3.1 챕터의 주요 Job 참고)
+운영 담당자는 Databricks Workspace에서 Job 실행 여부 및 실행 결과를 확인할 수 있습니다.
+
+5.3.6 시황 생성 결과 및 데이터 확인
+시황 콘텐츠는 웹 서비스 화면, 관리자 대시보드, 또는 데이터브릭스 테이블 조회를 통해 확인할 수 있습니다. 운영 담당자는 다음 항목을 확인합니다. 
+
+1) 웹 서비스 접속
+- 오늘의 시황 탭에서 주요 국내 시황, 최근 이슈, 테마 시황, 종목 시황 콘텐츠를 확인합니다.
+
+2) 관리자 대시보드 접속
+- 데이터 관리 &gt; AI 시황 데이터 관리 탭에서 서비스 중인 Gold 테이블들의 데이터를 직접 조회, 검색, 수정, 삭제 할 수 있습니다. 주요 기능은 아래와 같습니다.
+
+날짜 범위 필터링: 기준일 기준으로 기간별 데이터 조회
+키워드 검색: 제목, 콘텐츠, 카테고리 등 텍스트 필드 검색
+데이터 수정: 수정 가능 컬럼에 한해 값 변경 (수정 후 자동으로 Redis 캐시 갱신 API 호출)
+데이터 삭제 / 일괄 삭제: 개별 또는 다건 삭제 (삭제 후 자동 캐시 갱신)
+감사 로그: 모든 조회, 수정, 삭제 작업이 감사 로그에 자동 기록됨 (postgres/financial-analysis)
+
+3) 데이터브릭스 접속
+- SQL Editor 탭에서 사용자 쿼리를 실행하여 테이블 조회를 통해 생성된 콘텐츠를 확인합니다. 
+
+5.3.7 주요 운영 점검 항목
+운영 담당자는 주기적으로 다음 항목을 점검합니다.
+- Databricks Job 정상 실행 여부
+- 시황 콘텐츠 정상 생성 여부
+- 서비스 화면 정상 표시 여부
+
+5.3.8 긴급시황 Job ID 설정
+- 대상: STREAM-AIM-SLV-TRIGGER Job &gt; 81_urgent_market_trigger Task
+- 상황: Job 최초 생성 시 또는 10MIN-AIM-GLD-BREAKING-MARKET Job을 재생성한 경우
+- 조치 방법:
+10MIN-AIM-GLD-BREAKING-MARKET Job을 먼저 생성
+Workflows UI에서 해당 Job의 ID 확인
+STREAM-AIM-SLV-TRIGGER Job &gt; 81_urgent_market_trigger Task &gt; Parameters에 아래 값 입력
+Parameter
+값
+urgent_market_job_id
+(확인한 Job ID)
+* 미설정 시: KOSPI ±4% 감지해도 긴급시황이 생성되지 않음
+
+5.4 장애 대응 가이드
+시스템 주요 구성요소 장애 발생 시 다음 절차에 따라 확인 및 복구합니다.
+
+5.4.1 서비스별 장애 조치
+1) UDP 수집 중단
+증상: Databricks 00_ingest_bronze에서 새 데이터 유입이 중단됩니다.
+확인:
+sudo systemctl status udp-listener
+또는
+landing_buffer/ 에 미전송 파일 존재 여부 확인
+복구:
+sudo systemctl restart udp-listener
+
+2) adls 다운로더 중단
+증상: 매크로 시황 요약이 커뮤니티 서버에 전달되지 않습니다. (단, 시황 데이터 자체는 Databricks Gold 테이블에 정상 저장됩니다.)
+확인:
+sudo systemctl status adls-sender-api
+또는
+curl localhost:5050/health
+복구:
+sudo systemctl restart adls-sender-api
+
+3) sns 수집 중단
+영향: AI 시황 서비스에는 직접적인 영향이 없습니다. )실시간 뉴스 데이터는 UDP 기반 수집 경로를 통해 별도 처리됩니다.)
+확인:
+Azure Portal &gt; Container Apps
+복구:
+Container App Revision 재시작
+
+5.4.2 시스템 구성요소별 장애
+1) Databricks Job 오류
+Databricks Job 실행 오류가 발생하면 시황 생성 작업이 정상적으로 수행되지 않을 수 있습니다.
+Job 실행 상태 확인 후 재실행하거나, SQL Warehouse 실행 로그를 확인 후 담당 부서에 문의하여 쿼리 실행 강제 종료를 하는 등의 조치를 진행합니다.
+
+- Job 실행 상태 확인 및 재실행
+Databricks 워크스페이스 &gt; Workflows &gt; Jobs 메뉴에서 해당 Job의 실행 이력(Runs)을 확인합니다.
+각 Run의 상태(Succeeded / Failed / Timed Out / Cancelled)를 확인하고, Failed인 경우 Run 상세 화면에서 에러 로그를 확인합니다.
+일시적인 오류(네트워크 타임아웃, 리소스 부족 등)인 경우, Run Now 버튼으로 해당 Job을 수동 재실행합니다.
+
+2) SQL Warehouse 쿼리 실행 오류
+Job 내부에서 SQL 쿼리 실행 중 오류가 발생하거나 쿼리가 장시간 응답하지 않는 경우(MTS 화면에서 시황 무한 로딩), SQL Warehouse 상태를 확인해야 합니다.
+
+확인 경로: Databricks 워크스페이스 &gt; SQL &gt; SQL Warehouses 메뉴 진입
+Warehouse 상태 확인: Running / Starting / Stopped 상태를 확인합니다. Stopped 상태인 경우 자동 시작이 되지 않았을 수 있으므로 수동으로 Start합니다.
+쿼리 이력 확인: 해당 Warehouse를 클릭 &gt; Query History 탭에서 최근 실행된 쿼리의 상태(Running / Finished / Failed / Cancelled)를 확인합니다. 
+- 장시간 Running 상태인 쿼리가 있으면 해당 쿼리를 Cancel하여 강제 종료합니다.
+- Failed 쿼리는 에러 메시지를 확인하여 원인을 파악합니다.
+리소스 모니터링: Warehouse 상세 화면의 Monitoring 탭에서 동시 실행 쿼리 수, 대기열 상태, 리소스 사용량을 확인합니다. 쿼리 병목이 발생할 경우 담당 부서에 Warehouse 스케일업 또는 쿼리 강제 종료를 요청합니다.
+
+3) MTS 서비스 화면 오류
+웹 서비스(MTS)에서 시황 데이터가 표시되지 않거나 빈 화면이 나타나는 경우, 다음 항목을 점검합니다.
+
+- Redis 캐시 점검
+시황 생성이 정상 완료되었으나 웹 화면에 반영되지 않는 경우, Redis 캐시 갱신이 실패했을 수 있습니다.
+관리자 대시보드에서 해당 카테고리의 데이터를 조회하여 Gold 테이블에 데이터가 정상 존재하는지 확인합니다.
+데이터가 존재하면 관리자 대시보드의 데이터 매니저에서 해당 항목을 수정(내용 변경 없이 저장)하면, 백엔드에 직접 POST /api/market/refresh를 호출하여 캐시를 수동으로 갱신합니다.
+
+- 백엔드 서버 점검
+백엔드 서버(app-trend-int-prd)가 정상 동작하는지 확인합니다.
+Azure Portal에서 해당 Container App의 상태 및 로그 스트림을 확인합니다.
+Redis 연결 오류, Databricks 쿼리 타임아웃 등의 에러가 발생하는 경우 해당 서비스의 연결 정보와 상태를 점검합니다.
+
+- 프론트엔드 서버 점검
+프론트엔드(app-trend-ext-prd)는 Nginx 기반으로 구동됩니다.
+웹 페이지 자체가 로딩되지 않는 경우 Azure Portal에서 해당 Container App의 상태를 확인하고, 필요시 재시작합니다.
+
+6. 운영 이슈 및 로그 확인
+6.1 LLM 로그 조회 쿼리 및 차단 로그 확인
+시황 생성 과정에서 Azure OpenAI(AOAI)를 호출할 때마다 요청/응답 내용과 보안 검증 결과가 nh_ai_prd.logs.LLM_REQUEST_RESPONSE 테이블에 자동으로 기록됩니다. 운영 담당자는 이 로그를 통해 LLM 호출 상태, 오류, 개인정보(PII) 탐지, 콘텐츠 필터 차단 등을 확인할 수 있습니다.
+
+LLM 호출 결과에 따라 다음 유형으로 분류되어 기록됩니다.
+LOG_TYPE
+IS_BLOCKED
+BLOCK_REASON
+설명
+NORMAL
+false
+-
+정상 호출 및 응답 완료
+ERROR
+true
+API_ERROR 또는 API_ERROR_{HTTP상태코드}
+API 호출 오류 (타임아웃, 서버 오류 등)
+PII_BLOCKED
+true
+PII_CRITICAL
+CRITICAL 등급의 개인정보 감지로 요청 차단
+CONTENT_FILTER_BLOCKED
+true
+CONTENT_FILTER
+AOAI 콘텐츠 필터에 의해 차단 (hate, self_harm, sexual, violence 등)
+RATE_LIMIT_BLOCKED
+true
+RATE_LIMIT_EXCEEDED
+API 호출 빈도 제한 초과로 차단
+
+LLM 호출 시 다음 3단계의 보안 필터링이 적용됩니다.
+1) PII 필터 (입력 전처리)
+LLM에 요청을 보내기 전, ‘pii_filter.py’를 통해 입력 텍스트에서 개인정보를 탐지하고 마스킹합니다.
+탐지 대상: 주민등록번호, 외국인등록번호, 여권번호, 운전면허번호, 카드번호, 계좌번호, 전화번호, API 키, 비밀번호
+심각도 수준: LOW / MEDIUM / HIGH / CRITICAL
+기본 동작: PII 감지 시 마스킹 후 LLM에 전송 (CRITICAL이라도 기본적으로 차단하지 않고 마스킹만 수행)
+마스킹 이벤트는 별도로 nh_ai_prd.logs.SECURITY_EVENTS 테이블에도 기록됩니다.
+
+2) AOAI 콘텐츠 필터 (Azure 서비스 측)
+Azure OpenAI 서비스의 내장 콘텐츠 안전 필터로, 요청/응답에 대해 hate, self_harm, sexual, violence 카테고리를 검사합니다.
+필터 위반 시 HTTP 400 에러와 함께 응답이 차단되며, CONTENT_FILTER_BLOCKED로 기록됩니다.
+
+3) PII 필터 (출력 후처리)
+LLM 응답에 대해서도 PII 탐지 및 마스킹을 수행합니다.
+출력 단계에서는 차단 없이 마스킹만 적용됩니다.
+추가로 API 키, 엔드포인트 URL, 모델명 등 시스템 정보 노출 패턴도 제거됩니다.
+
+데이터브릭스 노트북 또는 SQL Editor에서 쿼리를 실행하여 LLM 로그를 조회할 수 있습니다. 관리자 대시보드에서는 코드 작성 없이 UI를 통해 LLM 로그와 보안 현황을 확인할 수 있습니다.
+관리자 대시보드의 경우, 서비스 운영 관리 탭에서는 아래 내용을 확인할 수 있습니다. 자세한 내용은 관리자 대시보드 매뉴얼을 참고해주시기 바랍니다.
+
+1) LLM 호출 로그
+LLM 로그 목록: 프롬프트 ID 및 기간 기준으로 요청/응답 미리보기
+LLM 호출 통계: 기간별 프롬프트 ID별 호출 횟수 및 에러 횟수 집계
+LLM 로그 단건 상세: 특정 호출의 전체 REQUEST/RESPONSE, PII/필터/차단 컬럼 전부 확인
+
+2) 보안 모니터링 화면
+보안 일별 통계: 전체 호출 대비 PII 감지, 콘텐츠 필터, 차단 건수 추이
+PII 유형별 건수: 감지된 개인정보 유형(주민번호, 카드번호 등)별 현황
+콘텐츠 필터 카테고리: 필터링된 콘텐츠 카테고리(hate, violence 등)별 현황
+차단 내역 목록: 차단된 요청의 사유, 프롬프트 ID, 요청 미리보기
+
+3) SQL 실행기 (SQL Executor)
+관리자 대시보드의 SQL 실행기 화면에서 위 쿼리들이 템플릿으로 사전 등록되어 있어, 클릭만으로 바로 실행할 수 있습니다.
+'LLM 호출 로그', '보안 로그' 카테고리에서 원하는 템플릿을 선택하거나, 직접 SQL을 작성하여 실행할 수 있습니다.
+
+관련 로그 테이블을 요약하면 아래와 같습니다.
+테이블
+용도
+nh_ai_prd.logs.LLM_REQUEST_RESPONSE
+LLM 호출 요청/응답 및 보안 필터링 결과
+nh_ai_prd.logs.SECURITY_EVENTS
+PII 마스킹 이벤트 상세 (탐지 유형, 심각도, 방향 등)
+nh_ai_prd.logs.RATE_LIMIT_EVENTS
+API 호출 빈도 제한 이벤트
+nh_ai_prd.logs.ALERT_EVENTS
+경고 알림 발송 이력
+nh_ai_prd.logs.PIPELINE_EXECUTION_LOG
+파이프라인(노트북) 실행 이력
+
+6.2 주요 운영 이슈 및 특이사항
+1) KRI1(국내 지수) 종가 데이터 이상값
+현상: KRI1 패킷에서 장 종료 후 전송되는 종가 데이터는 BSOP_HOUR 값이 888888로 수신됩니다. 이 종가 패킷이 들어오는 시점은 장마감 15:30 이후 전송되며, 따라서 UDP Collector를 거쳐 nh_ai_prd.bronze.KRI1_RAW에 적재되는 시점이 장 종료(15:30) 직후가 아닌, 수 분 이상 지연될 수 있습니다.
+
+영향: 시황 생성 프로그램들이 KRI1 데이터를 조회할 때 BSOP_HOUR 기준 내림차순으로 최신 1건을 가져오는 로직을 사용합니다. 
+60_macro_market.py (306행): Window.partitionBy("BSTP_CLS_CODE").orderBy(F.col("BSOP_HOUR").desc()) → KRI1_SILVER에서 최신 1건 조회
+81_urgent_market_trigger.py (176행): orderBy(F.col("BSOP_HOUR").desc()).limit(1) → 전일 종가 조회
+11_kri1_silver.py (93행): orderBy(F.col("BSOP_HOUR").desc()) → 일자별 마지막 시점 집계
+장 종료 직후에 실행되는 시황 배치(예: 15:30~15:40 사이)에서는 종가(BSOP_HOUR = 888888) 레코드가 아직 적재되지 않아, 장중 마지막 시세가 조회될 수 있습니다. 종가 기반의 정확한 시황이 필요한 경우, 배치 실행 시간을 종가 적재 이후로 충분히 여유 있게 설정하거나, 종가 레코드 존재 여부를 확인한 후 실행하는 것을 고려해야 합니다.
+
+2) 수능일 및 새해 개장식 (특수 장운영일) 이슈
+수학능력시험(수능) 당일과 신년 개장식 등 특수일에는 증권시장 운영 시간이 변경됩니다. 이에 따라 시황 생성 배치의 실행 시간 범위도 조정이 필요합니다.
+
+자동 적용 메커니즘:
+시스템은 market_hours.py의 get_market_hours() 함수를 통해 다음 우선순위로 장운영 시간을 자동 판단합니다.
+특수일 엑셀 파일 (special_market_hours.xlsx) — 수동으로 지정한 날짜가 있으면 해당 시간 사용
+A3 테이블 (nh_ai_prd.bronze.A3_RAW) — 실시간 장운영 이벤트 조회
+기본값 — 09:00~15:30
+
+운영 담당자 사전 조치 (매년 필수):
+special_market_hours.csv 파일에 해당 연도의 수능일, 개장식 등 특수일 정보를 추가합니다. 
+파일 형식: TRADE_DATE(YYYYMMDD), MARKET_OPEN(HHMM), MARKET_CLOSE(HHMM), DESCRIPTION
+.xlsx 형식으로 저장 후, Databricks Workspace의 /Workspace/Shared/notebook/utils/ 경로에 업로드합니다.
+코드 배포는 불필요하며, 파일 업로드만으로 즉시 반영됩니다.
+
+3) MTS 서비스 도메인 및 SSL 인증서 (app-trend-ext)
+MTS 웹 서비스는 다음 도메인으로 서비스됩니다.
+운영 (app-trend-ext-prd) :
+https://market.nhsec.com
+
+개발 (app-trend-ext-dev) :
+https://dmarket.nhsec.com
+
+SSL 인증서 구성
+
+프론트엔드(mts-app)는 Nginx 기반으로 구동되며, 백엔드 API로의 프록시 통신 시 TLS 1.2/1.3 프로토콜을 사용합니다.
+Nginx 설정(nginx.conf.template)에서 proxy_ssl_verify on 옵션이 활성화되어 있어, 백엔드 SSL 인증서가 만료되면 API 프록시가 실패합니다.
+신뢰 인증서 경로: /etc/ssl/certs/ca-certificates.crt (컨테이너 내장 CA 번들)
+
+SSL 인증서 갱신 시 확인사항
+*.nhqv.com 도메인 SSL 인증서의 만료일을 사전에 확인합니다. (26.03.25 기준 만료일 27.02.24)
+인증서 갱신은 Azure Portal의 해당 리소스(Container App) &gt; 네트워킹 &gt; 사용자 지정 도메인 메뉴에서 진행합니다.
+갱신 후 app-trend 프론트엔드와 백엔드 모두에서 HTTPS 통신이 정상인지 확인합니다.
+
+4) Azure AOAI 콘텐츠 필터 오탐지
+현상: 금융 뉴스 원문에 포함된 특정 표현(예: 폭락, 급락, 위기 등)이 Azure OpenAI 콘텐츠 안전 필터에 의해 "violence" 또는 "self_harm" 카테고리로 오분류되어 LLM 호출이 차단될 수 있습니다.
+확인 방법: nh_ai_prd.logs.LLM_REQUEST_RESPONSE에서 LOG_TYPE = 'CONTENT_FILTER_BLOCKED'인 로그를 조회하여 차단된 요청 내용과 필터 카테고리를 확인합니다.
+대응: 해당 프롬프트 ID의 입력 데이터에서 문제 표현을 사전 필터링하거나, Azure AOAI 리소스의 콘텐츠 필터 설정을 조정합니다
+
+5) Databricks Token 만료
+현상: 관리자 대시보드, MTS 백엔드 서버가 Databricks에 연결할 때 사용하는 PAT(Personal Access Token)는 만료 기간이 존재합니다.
+대응: 만료 전 Token을 갱신하고 해당 서비스의 환경변수(DATABRICKS_TOKEN)를 업데이트
+
+7. 서비스 가이드
+7.1 서비스 화면 및 메뉴 구조
+AI 시황 서비스는 시장 데이터를 기반으로 자동 생성된 콘텐츠를 제공하며, 크게 두 가지 메뉴로 구성됩니다.
+1) 오늘의 시황
+상단 날짜 변경을 통해 과거 및 당일의 주요 국내 시황, 이슈, 테마 정보를 한눈에 파악할 수 있는 메인 화면입니다.
+2) 종목 시황
+개별 종목별 뉴스 및 시장 동향을 기반으로 생성된 시황을 제공하며, 현재 날짜의 정보만 노출됩니다.
+
+오늘의 시황 탭
+
+종목 시황 탭
+
+7.2 서비스 콘텐츠 구성 및 생성 기준
+AI 시황 서비스에서는 다음과 같은 5가지 콘텐츠를 제공하며, 각 콘텐츠는 시장 데이터를 기반으로 자동 생성됩니다.
+
+7.2.1 주요 국내시황 (매크로시황) — 60_macro_market.py (스크립트) → A100_MACRO_MARKET (테이블)
+국내외 지수, 주요 시장이슈, 테마 동향을 종합하여 전체 시장 요약문을 LLM으로 생성합니다.
+입력 데이터 구성:
+A (시장이슈): A200_MARKET_EVENTS 당일 데이터 
+장전: 최신순 10건
+장중: 최근 1시간 내 이슈 우선, 최신순 10건
+장후: DISPLAY_CNT(표시횟수) 높은 순 15건
+B (지수 현황): KRI1_SILVER(코스피/코스닥) + KRG1_RAW(해외 지수) 최신 1건씩
+C (테마 시황): A300_THEME_MARKET 당일 테마별 최신 1건, 최대 30건 (변동률 상위 종목 3개씩)
+갱신 주기: Databricks Job 스케줄에 따라 30분 간격 실행 (배치 시간: 08:30~16:30)
+시장 세션 판단: get_market_session() 함수로 A3/특수일 기반, 동적 장운영 시간에 따라 장전/장중/장후 구분
+
+7.2.2 최근 이슈 (시장이벤트) — 40_market_events.py → A200_MARKET_EVENTS
+최근 뉴스에서 주요 시장 이슈를 3건 추출하고, 각 이슈의 상세 내용을 LLM으로 요약 생성합니다.
+뉴스 선정 조건:
+시간 범위: 최근 30분 이내 적재된 뉴스 (_INGEST_TS 기준)
+GPT 점수 필터: GPT01_AD_POST_SCORE &lt; 70 (광고 제외), GPT03_MARKET_POST_SCORE &gt;= 50, GPT04_CONTENT_QUALITY_SCORE &gt;= 50
+중요도 점수: GPT02 + GPT03 + GPT04 합산 기준 내림차순 정렬
+상위 200건 선정 → 제목 정규화 후 중복 제거 → LLM에 전달
+생성 프로세스 (2단계 LLM):
+이슈 추출 (news_market_event 프롬프트): 뉴스 헤드라인 목록에서 3대 시장 이슈(issue_title_01~03) 선정. 기존 당일 이슈와 동일 이슈면 reuse_id로 연결하여 뉴스 누적
+상세 생성 (news_market_event_content 프롬프트): 각 이슈별로 관련 뉴스 본문(최대 5건, 각 500자)을 취합하여 상세 내용(EVENT_DETAIL) 생성
+표시 데이터: EVENT_TITLE(이슈 제목), EVENT_DETAIL(상세 내용), NEWS_IDS/TITLES(관련 뉴스), MAIN_NEWS_ID(GPT03 최고점 핵심 뉴스), DISPLAY_CNT(동일 이슈 누적 표시 횟수)
+갱신 주기: Databricks Job 스케줄에 따라 30분 간격 (영업일 판단 후 실행)
+
+7.2.3 주요 테마/업종(테마 시황) — 50_theme_market.py → A300_THEME_MARKET 
+인포스탁(IFS) 테마 코드 기반으로 테마별 등락률, 거래대금, 시가총액을 집계하고, 관련 뉴스를 기반으로 테마 시황 문구를 LLM으로 생성합니다.
+테마 선정 기준:
+데이터 소스: EPDIW_IFS_TMA_CD(인포스탁 테마코드) + EPDIW_IFS_TMA_IEM(테마-종목 매핑)
+각 테마의 구성종목에 대해 KRX1_RAW(국내주식 시세) 조인 → 종목별 등락률(전일대비), 거래대금, 시가총액 집계
+종합점수(TOTAL_SCORE) 계산식: 
+각 테마의 등락률 절대값, 거래대금, 시가총액에 대해 Z-Score 표준화
+TOTAL_SCORE = RETURN_SCORE × 0.8 + (VOLUME_SCORE − MARKETCAP_SCORE) × 0.2
+등락률 비중 80%, 거래대금 대비 시가총액 비중 20%
+TOTAL_SCORE 상위 20개 테마 선정
+버블 사이즈(BUBBLE_SCALE) 계산:
+상위 20개 테마의 등락률 절대값을 기준으로 분위수(Quantile) 5등분
+q20, q40, q60, q80 경계값을 산출하여 해당 테마의 등락률 절대값이 어느 구간에 속하는지 판단
+뉴스 선정 및 시황 생성 (2단계 LLM):
+뉴스 후보: 최근 30분 이내, GPT01 &lt; 70(광고 제외), GPT04 &gt; 0(본문품질) 필터
+종목 등락률 기반 필터링: 테마 등락률과 반대 방향이고 절대값 2% 이상인 종목의 뉴스 제외
+대표뉴스 선별 (theme_rep_news_select): 테마 설명·등락률·종목 등락률을 고려하여 최대 10건 선별. 홍보성/비영향 기사 배제
+시황 생성 (theme_issue_summarize): 선별된 뉴스 + 직전 시황 + 종목별 테마 선정 사유를 기반으로 2~3문장 Fact-Based 서술
+연관 종목 표시:
+대표뉴스의 연관종목 + 테마 내 고변동 종목(등락률 절대값 3% 이상, 상위 5개) + 직전 시황 연관종목(최대 3개) 누적
+뉴스 ID/제목은 당일 내 직전 시황에서 누적 유지 (최신순 정렬)
+갱신 주기: 30분 간격 (배치 시간: 08:30~16:30). 실행마다 기존 당일 테마의 실시간 필드(FLUCTUATION_RATE, TRANSACTION_AMT, MARKET_CAP, BUBBLE_SCALE, DIRECTION, NEWS_RETURNS)도 갱신
+7.2.4 종목 시황 — 70_stock_news.py → A400_STOCK_NEWS
+개별 종목 관련 뉴스를 추출하여 특징주/테마로 분류하고, 뉴스 시점의 등락률과 함께 1줄 요약을 LLM으로 생성합니다.
+뉴스 선정 조건:
+시간 범위: 최근 40분 이내 적재된 뉴스
+종목코드 필터: n_code != '000000' (종목코드가 있는 뉴스만)
+뉴스 소스 필터: n_fgubun IN (F04, F07, F19, F22, F28)
+이미 처리된 뉴스 ID 제외 (Anti Join으로 중복 방지)
+GPT 점수 필터링 없음 (종목 관련 뉴스는 소스 유형으로 필터링)
+[특징주] 키워드 포함 뉴스는 우선 대상
+등락률(FLUCTUATION_RATE) 시간 기준:
+KRX1_RAW 테이블에서 해당 종목의 등락률을 조회하되, 뉴스 시점 기준으로 산출합니다.
+조회 전략 (우선순위): 
+분단위 정확 일치: 뉴스 시각(예: 0930)과 KRX1 시각이 분단위로 일치하는 데이터
+근사 시각 (±3분): 정확 일치가 없으면 뉴스 시각 기준 ±3분 범위 내에서 가장 가까운 데이터
+종가: 위 두 가지가 없으면 장마감 시각(A3/특수일 기반 동적) 데이터
+최신 시각: 모두 없으면 해당 일자의 가장 최신 시각 데이터
+생성 프로세스 (LLM 요약):
+각 뉴스별 1건씩 stock_news_summary 프롬프트로 LLM 호출
+출력 형식: 분류||종목명||등락률||요약내용||관련종목코드||관련종목명||n_id (CSV 형식)
+종목명은 EPDIW_STK_IEM(종목 마스터)의 정식 한글약명으로 정규화
+GPT가 추출한 종목명과 n_code가 다른 종목코드로 매핑되면 스킵 (오매핑 방지)
+직전 요약 목록을 프롬프트에 전달하여 중복 건은 빈 응답으로 처리
+갱신 주기: 30분 간격 (배치 시간: 09:00~17:00)
+
+7.2.5 긴급 시황 — 81_urgent_market_trigger.py + 80_urgent_market.py → A000_URGENT_MARKET
+코스피 지수의 급등락(±4% 이상) 감지 시 자동으로 긴급 시황을 생성합니다.
+발동 조건 (81_urgent_market_trigger.py):
+KRI1_RAW 테이블을 스트리밍으로 모니터링
+코스피(KGG01P) 지수의 당일 현재가와 전일 종가를 비교하여 등락률 계산
+등락률 절대값 ≥ 4.0% 이면 트리거 발동
+당일 이미 ACTIVE 트리거가 있으면 중복 발동 방지 (스킵)
+발동 시 nh_ai_prd.config.URGENT_MARKET_TRIGGER 테이블에 기록: 
+MARKET_CODE: KOSPI
+CHANGE_RATE: 등락률(%)
+STATUS: ACTIVE
+EXPIRE_AT: 감지 시점 + 2시간 (지속 조건)
+발동 즉시: 
+80_urgent_market Job의 스케줄을 UNPAUSED (10분 주기 크론 활성화)
+Run Now로 즉시 1회 실행
+지속 조건 및 자동 해제:
+80_urgent_market는 실행 시마다 URGENT_MARKET_TRIGGER에서 STATUS = 'ACTIVE'이고 EXPIRE_AT가 현재 이후인 트리거를 확인
+활성 트리거가 없으면 → 자기 자신의 Job 스케줄을 PAUSED로 변경 후 종료 (NO_ACTIVE_TRIGGER)
+81_trigger가 각 마이크로배치에서 만료된 트리거(EXPIRE_AT &lt; 현재)를 EXPIRED로 자동 업데이트
+결과적으로 트리거 발동 후 약 2시간 동안 10분 간격으로 긴급 시황이 갱신되고, 이후 자동 정지
+시황 생성 프로세스 (80_urgent_market.py, 최대 5회 반복):
+뉴스 수집: 현재 시각 기준 직전 1시간 이내 뉴스, GPT01 &lt; 70(광고 제외) + GPT03 &gt;= 70(증시점수 70 이상)
+중요도 점수: GPT03 + GPT02 + GPT04 합산, 상위 50건
+
+단계
+프롬프트 ID
+설명
+1단계
+urgent_market_top5_selection
+헤드라인에서 급등/급락 원인 관련 Top 5 뉴스 선정
+2단계
+urgent_market_summary
+선정된 뉴스 본문(각 500자)으로 시황 문구 생성 + 원인 발견 여부(cause_found) 판단
+3단계
+urgent_market_quality
+생성된 시황의 품질 판단: 관련도(Y/N) + 원인설명(Y/N)
+
+7.3 상세 기능 활용 가이드
+7.3.1 오늘의 시황 활용
+오늘의 시황 화면에서는 주요 국내 시황, 최근 이슈, 주요 테마 및 업종 종합하여 당일 기준 시장 전반의 흐름을 한 눈에 확인할 수 있습니다. 사용자는 해당 화면을 통해 당일 시장 상황과 주요 이슈를 빠르게 파악할 수 있습니다.
+
+1) 주요 국내 시황
+주요 국내 시황은 테마 시황을 종합하여 생성한 상위 레벨의 시황으로, 시장 전반의 분위기, 투자심리, 단기중기 관점의 흐름 등을 분석합니다.
+ 버튼 클릭시 오늘의 시황에 대한 가이드를 확인할 수 있고, [자세히 보기] 클릭 시 보다 상세한 시황 내용을 확인할 수 있습니다.
+
+주요 국내 시황 가이드
+
+주요 국내시황 상세 팝업
+
+2) 최근 이슈
+최근 이슈는 주요 금융 및 증권 뉴스를 기반으로 한 시황입니다. 국내외 시장에 영향을 준 주요 뉴스와 이벤트를 중심으로 시장 동향을 요약합니다.
+ 버튼 클릭 시 최근 이슈에 대한 가이드를 확인할 수 있습니다. 또한, [더보기] 클릭 시 팝업을 통해 최근 이슈의 기사 목록을 확인할 수 있고, 열린 팝업에서 기사를 클릭하면 해당 뉴스 기사 전문을 추가로 확인할 수 있습니다.
+
+최근 이슈 가이드
+
+최근 이슈 상세 팝업
+
+뉴스 전문 팝업
+
+3) 주요 테마 및 업종
+주요 테마/업종은 특정 테마(산업, 기술, 정책, 이슈 등)를 중심으로 분석한 시황 정보를 제공합니다. 최근 이슈와 국내 지수, 흐름 등을 고려하여 시장 동향을 종합적으로 분석합니다.
+ 버튼 클릭 시 주요 테마/업종에 대한 가이드를 확인할 수 있습니다. 또한 [버블차트] 클릭 시 해당 테마의 시황을 확인하는 페이지로 이동하며, 해당 페이지에서는 테마에 대한 변동률, 거래대금, 구성종목, 시가총액 등 상세 내용을 확인할 수 있습니다.
+이동한 테마 시황 상세 페이지에서 날짜를 변경하면 변경한 날짜에 해당하는 테마 시황을 확인할 수 있습니다. 단, 테마 시황이 존재하는 날짜만 표기됩니다. 추가적으로, 테마 이슈 중 기사를 클릭하면, 해당 기사 전문을 확인할 수 있고, 종목 칩을 클릭하면 종목 상세 팝업에서 상세 정보를 확인할 수 있습니다.
+
+최근 이슈 가이드
+
+최근 이슈 상세 팝업
+
+뉴스 전문 팝업
+
+종목 상세 팝업
+
+7.3.2 종목 시황 활용
+종목 시황 화면에서는 개별 종목을 기준으로 생성된 시황 콘텐츠를 확인할 수 있습니다. 종목별 뉴스 및 시장 동향을 기반으로 약 10분 주기로 자동 생성되는 시황 정보를 제공합니다.
+종목 클릭 시 종목 상세 팝업에서 선택한 종목에 대한 현재 데이터를 확인할 수 있습니다.
+
+종목 시황 탭
+
+종목 상세 팝업
+
+8. 운영 시나리오
+8.1 프롬프트 수정 및 테스트 비교 시나리오
+운영 중인 AI 시황 서비스의 프롬프트를 수정하고, 기존 프롬프트와 생성 결과를 비교한 후 반영하는 절차에 대한 가이드입니다. 
+
+1) 현행 프롬프트 확인
+데이터브릭스 SQL Editor 또는 관리자 대시보드(스키마 브라우저, AI 시황데이터 관리)에서 현행 프롬프트를 조회합니다.
+
+2) 개발환경에서 프롬프트 수정
+프롬프트 수정 방법은 다양하게 존재합니다. 
+- 데이터브릭스 SQL Editor에서 UPDATE문으로 PROMPT_TEXT를 수정
+- 관리자 대시보드(AI 시황데이터 관리 &gt; 프롬프트)에서 해당 프롬프트 수정
+- 데이터브릭스 /notebooks/data_ingest/05_seed_prompts.py의 해당 프롬프트 내용 변경 후 노트북 실행
+
+위 세 방법의 경우 기존 프롬프트는 내용은 백업되지 않아 유실됩니다.
+
+- 데이터브릭스 SQL Editor에서 INSERT문으로 수정할 프롬프트의 PROMPT_TEXT만 수정하여 새로 등록
+모든 프롬프트는 _load_prompt 함수로 nh_ai_prd.cofig.PROMPT_CATALOG 테이블에서 로드합니다. 위 함수는 동일한 PROMPT_ID로 여러 행이 있어도, UPDATED_AT DESC 후 LIMIT 1을 실행하므로 항상 최신 1건만 가져옵니다. 따라서 실제로 노트북이 사용하는 것은 항상 UPDATED_AT이 가장 최신인 1건이므로 프롬프트 이력관리가 가능합니다.
+
+8.2 외부 데이터 수집기 추가 시나리오
+8.2.1 전체 아키텍처 및 데이터 흐름
+단계
+담당
+설명
+1. 데이터 수집
+sns-ext
+외부 API(Gemini 등) 호출 및 데이터 수집
+2. 스케줄링/전송
+sns-int
+정해진 주기로 ext 호출, 수집 결과를 ADLS에 업로드
+3. Landing 저장
+ADLS Gen2
+landing/SNS/{source}/ingest_date=.../hour=.../ 경로에 JSONL 저장
+4. 테이블 적재
+Databricks Job
+Landing 데이터를 읽어 Delta 테이블에 적재
+
+8.2.2 Step 1: sns-ext에 수집 엔드포인트 추가
+sns-ext는 FastAPI 기반 외부 데이터 수집 서버입니다. Azure Container Apps(app-sns-ext-prd)에서 운영됩니다
+1) Collector 모듈 생성
+sns-ext/collectors/ 디렉토리에 수집 로직을 구현합니다. 기존 수집기(perplexity_collector.py, quartr_collector.py, ezar_collector.py)의 패턴을 참고합니다
+예시:
+# sns-ext/collectors/gemini_collector.py
+import os
+import httpx
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+
+async def collect_theme_stocks(query: str) -&gt; list[dict]:
+    """Gemini API로 종목-테마 데이터 수집"""
+    if not GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY not set")
+
+    # Gemini API 호출 로직 구현
+    # 반환: [{"stk_nm": "종목명", "thema": "테마명"}, ...]
+
+2) FastAPI 엔드포인트 등록
+sns-ext/app.py에 엔드포인트를 추가합니다. 인증은 verify_api_key 의존성을 사용하여 sns-int에서 호출시 전달받은 X-API-Key 헤더로 sns-ext의 SNS_API_KEY와 비교합니다.
+예시:
+# app.py에 추가
+from collectors.gemini_collector import collect_theme_stocks
+
+@app.post("/gemini/theme-stocks", dependencies=[Depends(verify_api_key)])
+async def gemini_theme_stocks(request: GeminiRequest):
+    """Gemini API 기반 종목-테마 데이터 수집"""
+    results = await collect_theme_stocks(request.query)
+    return {"status": "ok", "count": len(results), "data": results}
+
+3) 환경변수 설정
+Azure Portal → Container Apps → app-sns-ext-prd → 환경 변수에 추가:
+환경변수
+설명
+예시
+GEMINI_API_KEY
+Gemini API 인증 키
+AIza...
+기존 필수 환경변수(SNS_API_KEY, PPLX_API_KEY)는 현재 구조상 앱 기동 시 검증하므로 유지해야 합니다.
+
+4) 배포 (GHES)
+개발환경 dev 브랜치에 push → GitHub Actions가 Docker 이미지 빌드 → ACR(nhaiacr) push → Container Apps(app-sns-ext-dev) 업데이트
+운영환경: prd 브랜치에 push → GitHub Actions가 Docker 이미지 빌드 → ACR(nhaiacrprd) push → Container Apps(app-sns-ext-prd) 업데이트
+
+8.2.3 Step 2: sns-int에 스케줄링 및 ADLS 전송 추가
+sns-int는 내부 스케줄러 서버로, 정해진 주기로 sns-ext를 호출하고 수집 결과를 ADLS Gen2에 업로드합니다.
+1) WebJob 모듈 생성
+sns-int/webjobs/gemini/ 디렉토리에 실행 로직을 구현합니다.
+예시:
+# sns-int/webjobs/gemini/run.py
+import os
+import requests
+import json
+from datetime import datetime, timezone, timedelta
+from utils.adls_helper import AdlsWriter
+
+SNS_EXT_URL = os.getenv("SNS_EXT_URL")
+SNS_API_KEY = os.getenv("SNS_API_KEY")
+
+def main():
+    """Gemini 수집기 실행 → ext 호출 → ADLS 업로드"""
+    # 1. sns-ext 호출
+    resp = requests.post(
+        f"{SNS_EXT_URL}/gemini/theme-stocks",
+        headers={
+            "X-API-Key": SNS_API_KEY,
+            "User-Agent": "sns-int/1.0.0"
+        },
+        json={"query": "오늘의 주요 테마 종목"},
+        timeout=120
+    )
+    resp.raise_for_status()
+    data = resp.json().get("data", [])
+
+    # 2. ADLS에 JSONL 업로드
+    now_kst = datetime.now(timezone(timedelta(hours=9)))
+    writer = AdlsWriter(source="gemini")
+
+    lines = [json.dumps(item, ensure_ascii=False) for item in data]
+    content = "\n".join(lines)
+
+    writer.upload(
+        content=content,
+        program="theme_stocks",
+        ingest_date=now_kst.strftime("%Y%m%d"),
+        hour=now_kst.strftime("%H"),
+        suffix=".jsonl"
+    )
+
+    print(f"[Gemini] {len(data)}건 ADLS 업로드 완료")
+
+if __name__ == "__main__":
+    main()
+
+2) 스케줄러 등록
+sns-int/webjobs/scheduler.py에 스케줄을 등록합니다
+예시:
+# scheduler.py의 스케줄 등록 섹션에 추가
+from webjobs.gemini.run import main as gemini_main
+
+schedule.every().day.at("08:00").do(
+    run_threaded, gemini_main
+).tag("gemini")
+
+3) 환경변수 (sns-int)
+기존 필수 환경변수가 이미 설정되어 있어야 합니다:
+환경변수
+설명
+SNS_EXT_URL
+sns-ext 서버 URL 
+SNS_API_KEY
+ext/int 간 공유 인증 키
+ADLS_ACCOUNT
+ADLS Gen2 스토리지 계정명
+ADLS_CONTAINER
+컨테이너명 (기본: marketdata)
+
+4) 배포 (GHES)
+개발환경 dev 브랜치에 push → GitHub Actions가 Docker 이미지 빌드 → ACR(nhaiacr) push → Container Apps(app-sns-int-dev) 업데이트
+운영환경: prd 브랜치에 push → GitHub Actions가 Docker 이미지 빌드 → ACR(nhaiacrprd) push → Container Apps(app-sns-int-prd) 업데이트
+
+8.2.4 Step 3: 데이터브릭스 테이블 적재
+ADLS Landing에 저장된 데이터를 데이터브릭스 Delta 테이블로 적재하는 노트북을 작성합니다. 노트북 작성 경로는 /notebooks/data_ingest/ 입니다. 작성완료되었다면, Databricks Job 스케줄을 등록합니다.
+
+8.2.5 오류 확인/알림 설정
+1) sns-ext / sns-int 레벨
+로그 확인: Azure Portal → Container Apps → app-sns-ext-prd (또는 int) → 로그 스트림
+콘솔 접속: Azure Portal → Container Apps → 콘솔 탭에서 컨테이너 내부 접속 가능
+sns-int의 각 WebJob에서 예외 발생 시 스케줄러 로그에 에러가 출력됩니다
+
+2) 데이터브릭스 레벨
+Job 실패 알림: Databricks Job 설정에서 이메일 알림 설정 가능
+코드 내 알림: alert.py 유틸리티를 활용하여 AMS 알림 연동 가능 (log_error, log_warn 함수)
+
+8.3. 신규 서비스 생성 시나리오 (교육용)
+현재 환경 내에서 신규 샘플 서비스를 처음부터 끝까지 생성하는 교육용 시나리오입니다. 아래 예시를 기준으로, 데이터브릭스 노트북 작성부터 Container Apps 웹 서비스 배포까지의 전체 과정을 안내합니다.
+시나리오 개요: "매일 오전 8시에 당일 수집 데이터 건수를 집계하고, LLM으로 전일 대비 변화를 요약한 뒤, 웹페이지에 표시하는 서비스"
+
+1) Workspace 폴더 구조 생성
+데이터브릭스 Workspace에서 신규 서비스용 폴더를 생성합니다. 기존 서비스와 구분 가능한 별도 영역에 배치합니다.
+예시: /Workspace/Shared/notebook/sample_service/01_daily_count_report.py
+
+2) 컴퓨트 자원 확인
+개발/테스트: 기존 All-purpose 클러스터 사용 (노트북 상단에서 Attach)
+운영 스케줄: Databricks Job 생성 시 Job Cluster를 지정하거나, 기존 공유 클러스터를 사용
+
+3) 노트북 작성
+
+4) Databricks Job 스케줄 설정
+매주 월~금 오전 8시(KST)에 자동 실행되도록 Job을 생성합니다.
+Databricks → Workflows → Jobs → Create Job
+Task 설정: 
+Type: Notebook
+Source: Workspace
+Path: /Workspace/Shared/notebook/sample_service/01_daily_count_report
+Cluster: 기존 Job Cluster 또는 신규 생성
+Schedule 설정: 
+Schedule type: Scheduled
+Cron expression: 0 0 8 ? * MON-FRI (월~금 오전 8시 KST)
+Timezone: Asia/Seoul
+알림 설정: 
+Email notifications: 실패 시 이메일 수신자 추가 (선택)
+Create 클릭
+
+5) Backend API 생성 (Container Apps)
+신규 Container Apps가 Azure에 생성되면, 수집 건수와 LLM 요약 문장을 외부에서 조회할 수 있도록 API를 생성합니다. Git repo에 기존 aimarket-back(FastAPI + Databricks SQL Connector) 패턴을 참고합니다.
+
+6) Frontend Web 생성 (Container Apps)
+고객에게 수집 건수와 LLM 요약 문장을 보여주는 웹페이지를 생성합니다.
+
+7) 결과 화면 확인
+Azure Portal → Container Apps → app-sample-front-dev (신규 앱)→ Overview에서 Application URL을 확인합니다. 브라우저 접속 후 데이터를 확인합니다
+
+데이터가 표시되지 않으면: 
+- Backend API 직접 호출: https://app-sample-back-dev.../api/daily-count?date=20260323
+- Databricks 테이블 직접 조회: SELECT * FROM nh_ai_prd.sample.DAILY_COUNT_REPORT ORDER BY BASE_DATE DESC LIMIT 5
+- Redis 캐시 문제 시: Backend 재시작 또는 Redis flush
+
+8.4. 데이터 수집 스키마 변경 대응 시나리오
+특정 시간대 이후 주가 데이터(KRX1)가 정상적으로 출력되지 않는 장애가 발생한 경우, 원인을 추적하고 수집 프로그램의 파싱 스키마를 수정하여 복구하는 절차입니다.
+
+주요 원인 예시:
+시세 송신측(거래소 등)에서 패킷 레이아웃(고정폭 필드 자릿수)을 변경한 경우
+새로운 필드가 추가되거나 기존 필드 길이가 변경된 경우
+송신 IP가 변경되어 데이터가 수신되지 않거나 다른 형식으로 들어온 경우
+
+8.4.1 전체 데이터 흐름
+구간
+위치
+프로토콜/방식
+수신
+udp_collector 서버
+UDP 0.0.0.0:30101
+ADLS 저장
+landing/port=30101/header_type=krx1/ingest_date=YYYY-MM-DD/hour=HH/part-*.jsonl
+JSONL (raw_data 포함)
+Bronze 적재
+00_ingest_bronze.py
+Spark Auto Loader → nh_ai_prd.bronze.krx1_raw
+
+8.4.2 단계별 대응절차
+1) Bronze 테이블에서 이상 시점 전후 데이터 확인
+Databricks SQL 또는 관리자 대시보드에서 이상이 발생한 시간대의 KRX1 데이터를 조회하여, 언제부터 데이터가 깨졌는지 확인합니다. 중점적으로 확인할 사항은 다음과 같습니다. 
+- 정상 데이터와 이상 데이터의 비교 쿼리(예: 특정 종목(삼성전자 005930)의 시간대별 데이터 확인)
+
+- raw_data 원본 길이 확인 쿼리
+기존 KRX1 고정폭 합계: 89자 (CODE 4 + SHRN_ISCD 9 + BSOP_DATE 8 + BSOP_HOUR 6 + STCK_PRPR 12 + PRDY_VRSS_SIGN 1 + PRDY_VRSS 12 + PRDY_CTRT 6 + ACML_VOL 15 + ACML_TR_PBMN 15 + HOUR_CLS_CODE 1)
+
+2) 수집 서버에서 원본 JSONL 데이터 확인
+udp_collector 서버에 접속하여, ADLS에 업로드되기 전 로컬 버퍼 또는 ADLS landing의 원본 JSONL을 확인합니다.
+# 로컬PC &gt; Bastion VM &gt; udp_collector 서버 SSH 접속
+az login
+az ssh vm -n vm-hub-bst-prd -g rg-hub-shd –port 62234 (운영기준)
+az ssh vm -n nh-vm-market-prd-01 -g rg-dataings-prd –62234 (서버1 서버2 존재)
+
+# 버퍼 확인 (즉시 확인 가능한 최근 데이터)
+ls -la /sw/udp_collector/landing_buffer/port=30101/header_type=krx1/
+
+# 최신 JSONL 파일 내용 확인
+cat /sw/udp_collector/landing_buffer/port=30101/header_type=krx1/ingest_date=2026-03-23/hour=09/part-2026-03-23-09-30.jsonl | head -5
+
+JSONL 레코드 구조 예시:
+{
+  "event_ts": "2026-03-23T09:30:15.123456",
+  "port": 30101,
+  "header_type": "krx1",
+  "packet_id": "UDP_30101_1711158615123456_10200130",
+  "source_ip": "10.20.0.130",
+  "raw_size_bytes": 89,
+  "raw_data": "KRX1005930002026032309301500000006500020..."
+}
+
+중점적으로 확인할 사항은 다음과 같습니다.
+raw_data 문자열의 총 길이가 기존 89자에서 변경되었는지
+분 단위로 데이터가 연속적으로 들어오고 있는지 (빈 시간대 확인)
+source_ip가 기존 송신 IP와 동일한지
+
+3) 스키마 정합성 확인
+스키마 정합성 확인 후 파싱 스키마 수정이 필요할 경우, 두 곳의 코드를 수정합니다.
+
+- Databricks Bronze 적재 노트북
+notebooks/data_ingest/00_ingest_bronze.py의 specs_30101을 수정합니다. 
+예시:
+# 수정 후
+specs_30101 = [
+    ('CODE', 4, 'string'),
+    ('SHRN_ISCD', 9, 'string'),
+    ('BSOP_DATE', 8, 'string'),
+    ('BSOP_HOUR', 6, 'string'),
+    ('STCK_PRPR', 15, 'string'),        # ← 15자로 변경
+    ('PRDY_VRSS_SIGN', 1, 'string'),
+    ('PRDY_VRSS', 12, 'string'),
+    ('PRDY_CTRT', 6, 'string'),
+    ('ACML_VOL', 15, 'string'),
+    ('ACML_TR_PBMN', 15, 'string'),
+    ('HOUR_CLS_CODE', 1, 'string'),
+]
+
+새로운 필드가 추가된 경우:
+specs_30101 = [
+    # ... (기존 필드 동일) ...
+    ('HOUR_CLS_CODE', 1, 'string'),
+    ('NEW_FIELD', 4, 'string'),         # ← 새 필드 추가
+]
+
+- 수집 서버 파서 수정
+udp_collector/udp_listener/parsers/stock_parser.py의 _parse_krx1_packet() 함수도 동일하게 수정합니다. 이 파서는 수집 서버의 진단/모니터링 용도로 사용되며, Bronze 적재에는 직접적으로 관여하지 않지만 일관성을 위해 같이 수정하는 것이 좋습니다. 이 경우 수집서버의 파일을 직접 교체, 수정 후 서비스를 재시작 해야합니다.
+stock_parser.py 수정:
+# stock_parser.py의 _parse_krx1_packet 내 슬라이스 오프셋 수정
+# 예: data[27:39] → data[27:42] (STCK_PRPR 12자 → 15자)
+
+수집 서버 (udp_collector) 재시작:
+sudo systemctl restart udp-listener
+
+# 서비스 상태 확인
+sudo systemctl status udp-listener
+
+# 실시간 로그 확인
+journalctl -u udp-listener -f
+
+수집 서버의 udp_collector는 systemd 서비스(udp-listener.service)로 운영되며, 재시작 시 run.sh를 통해 실행됩니다. 재시작 후 60초 주기로 포트별 수신 통계가 로그에 출력되므로, 포트 30101의 수신 건수가 정상적으로 증가하는지 확인합니다.
+동일한 패턴으로 다른 UDP 포트의 스키마 변경에도 대응할 수 있습니다.

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>{{TITLE}} — stock_agent wiki</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root {
+    --bg: #0f172a; --panel: #1e293b; --panel-2: #293548;
+    --text: #e2e8f0; --muted: #94a3b8;
+    --accent: #38bdf8; --accent-2: #22c55e; --cite: #fbbf24;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, "Pretendard", "Segoe UI", "Malgun Gothic",
+                 "Apple SD Gothic Neo", sans-serif;
+    line-height: 1.6; font-size: 15px;
+  }
+  main { max-width: 940px; margin: 0 auto; padding: 28px 22px 80px; }
+  header {
+    margin-bottom: 18px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  header .breadcrumb {
+    font-size: 12px; color: var(--muted); margin-bottom: 6px;
+  }
+  header .breadcrumb a { color: var(--accent); text-decoration: none; }
+  header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+  header .meta {
+    margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .badge {
+    padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  }
+  .badge.ticker { background: #1e3a8a; color: #bfdbfe; font-family: Consolas, Menlo, monospace; }
+  .badge.market { background: #1e293b; color: #cbd5e1; border: 1px solid var(--border); }
+  .badge.sector { background: #1e293b; color: var(--muted); border: 1px solid var(--border); }
+
+  nav.sections {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    background: var(--panel); padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    margin: 14px 0 22px;
+  }
+  nav.sections a {
+    background: var(--panel-2); color: var(--text); text-decoration: none;
+    padding: 4px 12px; border-radius: 999px; font-size: 12px;
+    border: 1px solid var(--border);
+  }
+  nav.sections a:hover { border-color: var(--accent); color: var(--accent); }
+
+  article.section {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 10px; padding: 18px 22px; margin-bottom: 16px;
+    scroll-margin-top: 12px;
+  }
+  article.section .section-head {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px dashed var(--border); padding-bottom: 8px; margin-bottom: 12px;
+  }
+  article.section .section-head h2 {
+    margin: 0; font-size: 16px; color: var(--accent);
+  }
+  article.section .section-head h2 .sec-slug {
+    color: var(--muted); font-size: 11px; font-weight: 400;
+    font-family: Consolas, Menlo, monospace;
+  }
+  article.section .section-head .meta-small {
+    font-size: 11px; color: var(--muted);
+  }
+  article.section .section-head .meta-small code {
+    background: var(--panel-2); padding: 2px 6px; border-radius: 4px; color: var(--muted);
+  }
+
+  .md h1 { display: none; }  /* section 렌더에 이미 h2로 제목이 있으므로 md 내부의 h1은 숨김 */
+  .md h2 { font-size: 15px; color: var(--text); margin: 14px 0 6px; }
+  .md h3 { font-size: 14px; color: var(--text); margin: 10px 0 4px; }
+  .md ul { margin: 6px 0; padding-left: 22px; }
+  .md li { margin: 3px 0; }
+  .md p { margin: 6px 0; }
+  .md code {
+    background: var(--panel-2); color: var(--cite);
+    padding: 1px 6px; border-radius: 4px; font-size: 12px;
+  }
+  .md em { color: var(--muted); font-style: normal; }
+  .md table { border-collapse: collapse; margin: 8px 0; font-size: 13px; }
+  .md th, .md td {
+    border: 1px solid var(--border); padding: 4px 10px;
+  }
+  .md th { background: var(--panel-2); color: var(--accent); text-align: left; }
+  .md strong { color: var(--cite); }
+
+  .skill { border-left: 3px solid var(--accent-2); }
+  details.raw {
+    margin-top: 10px; background: var(--panel-2);
+    border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 12px;
+  }
+  details.raw > summary {
+    cursor: pointer; color: var(--muted); font-size: 12px;
+  }
+  details.raw pre {
+    margin: 8px 0 0; font-size: 11px; color: #cbd5e1;
+    white-space: pre-wrap; font-family: Consolas, Menlo, monospace;
+  }
+
+  /* 섹션 카드 내부 — per-section 태그/링크 행 */
+  .section-tags {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding: 6px 0 4px; margin-bottom: 8px;
+  }
+  .section-links {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 0 0 10px; margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .wl-chip {
+    display: inline-flex; align-items: baseline; gap: 4px;
+    background: rgba(251,191,36,.08);
+    color: var(--cite);
+    border: 1px solid rgba(251,191,36,.25);
+    border-radius: 6px;
+    padding: 2px 8px; font-size: 11px; text-decoration: none;
+  }
+  .wl-chip:hover { background: rgba(251,191,36,.18); color: #fde68a; }
+  .wl-chip .wl-arrow { color: var(--muted); font-size: 10px; }
+  .wl-chip code {
+    background: none; color: inherit; padding: 0;
+    font-family: Consolas, Menlo, monospace; font-weight: 600;
+  }
+
+  /* Obsidian-style tags & wikilinks */
+  .tag-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-chip {
+    display: inline-flex; align-items: baseline; gap: 3px;
+    background: rgba(56,189,248,.08);
+    color: var(--accent);
+    border: 1px solid rgba(56,189,248,.25);
+    border-radius: 999px;
+    padding: 3px 11px; font-size: 12px; text-decoration: none;
+    transition: all .12s;
+  }
+  .tag-chip:hover {
+    background: rgba(56,189,248,.18); border-color: var(--accent); color: #fff;
+  }
+  .tag-chip .tag-hash { color: var(--cite); font-weight: 700; }
+  .tag-chip .tag-count {
+    background: var(--panel-2); padding: 0 6px; border-radius: 6px;
+    font-size: 10px; color: var(--muted);
+  }
+  .mini-chip {
+    background: var(--panel-2); color: var(--text); text-decoration: none;
+    padding: 2px 8px; border-radius: 6px; font-size: 11px;
+    border: 1px solid var(--border); margin-right: 3px;
+  }
+  .mini-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 모든 wiki 링크는 방문 여부 무관하게 accent 색 유지 */
+  .md a,
+  .md a:link,
+  .md a:visited {
+    color: var(--accent); text-decoration: none;
+  }
+  .md a[href^="/wiki/"],
+  .md a[href^="/wiki/"]:link,
+  .md a[href^="/wiki/"]:visited {
+    color: var(--accent);
+    border-bottom: 1px dashed rgba(56,189,248,.4);
+  }
+  .md a:hover,
+  .md a[href^="/wiki/"]:hover,
+  .md a[href^="/wiki/"]:visited:hover {
+    color: #7dd3fc;
+    border-bottom-style: solid;
+  }
+  /* 테이블 셀 안의 종목 코드 링크 — monospace + 높은 대비 */
+  .md td a[href^="/wiki/"],
+  .md td a[href^="/wiki/"]:visited {
+    font-family: Consolas, Menlo, monospace;
+    font-weight: 600;
+    background: rgba(56,189,248,.10);
+    padding: 1px 7px;
+    border-radius: 4px;
+    border-bottom: 0;
+  }
+  .md td a[href^="/wiki/"]:hover { background: rgba(56,189,248,.22); color: #fff; }
+
+  /* 외부 링크 표시 (FnGuide 등) */
+  .md a[href^="http"]::after,
+  .md a[href^="https"]::after {
+    content: " ↗";
+    font-size: 0.82em;
+    color: var(--muted);
+    vertical-align: super;
+    margin-left: 1px;
+  }
+  .md a[href^="http"],
+  .md a[href^="https"] {
+    color: var(--accent-2);
+    border-bottom: 1px dotted rgba(34,197,94,.4);
+  }
+  .md a[href^="http"]:hover,
+  .md a[href^="https"]:hover { color: #86efac; border-bottom-style: solid; }
+
+  .backlinks { border-left: 3px solid var(--cite); }
+  .backlink-list, .tag-result-list { list-style: none; padding: 0; margin: 0; }
+  .backlink-list li, .tag-result-list li {
+    padding: 6px 0; border-bottom: 1px dashed var(--border);
+  }
+  .backlink-list li:last-child, .tag-result-list li:last-child { border-bottom: 0; }
+  .backlink-list a, .tag-result-list a.big-link {
+    color: var(--text); text-decoration: none;
+  }
+  .backlink-list a:hover, .tag-result-list a.big-link:hover {
+    color: var(--accent);
+  }
+  .tag-hash { color: var(--cite); font-weight: 700; }
+
+  footer { margin-top: 40px; text-align: center; color: var(--muted); font-size: 11px; }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="breadcrumb">
+    <a href="/">← 질의 페이지</a> · <a href="/wiki/">wiki index</a>
+  </div>
+  <h1>{{HEADER_TITLE}}</h1>
+  <div class="meta">{{BADGES}}</div>
+</header>
+
+<nav class="sections">
+{{NAV_LINKS}}
+</nav>
+
+{{BODY}}
+
+<footer>
+  Wiki는 수집된 데이터로부터 자동 생성됩니다 · 이 페이지는 읽기 전용입니다.
+</footer>
+</main>
+</body>
+</html>
