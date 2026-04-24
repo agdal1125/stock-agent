@@ -35,7 +35,13 @@
       "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json\" -d '{\"q\":\"삼성전자 뭐하는 회사?\",\"stream\":false}')",
       "Bash(python -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('tickers:',d['tickers']\\); print\\('intent:',d['intent']\\); print\\('answer:',d['answer'][:120]\\)\")",
       "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json; charset=utf-8\" --data-binary '{\"q\":\"005930\",\"stream\":false}')",
-      "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json\" --data-binary '{\"q\":\"005930\",\"stream\":false}')"
+      "Bash(curl -s -X POST http://127.0.0.1:8002/ask -H \"Content-Type: application/json\" --data-binary '{\"q\":\"005930\",\"stream\":false}')",
+      "Bash(gh auth *)",
+      "Bash(command -v gh)",
+      "Read(//c/Program Files/GitHub CLI/**)",
+      "Read(//c/Users/NHWM/AppData/Local/GitHubCLI/**)",
+      "Bash(powershell -Command \"Get-Command gh -ErrorAction SilentlyContinue | Select-Object Source\")",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)"
     ]
   }
 }

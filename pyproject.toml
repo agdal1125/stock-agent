@@ -32,3 +32,5 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 stock_agent = ["schema.sql", "*.sql"]
+"stock_agent.agent_int" = ["static/*.html", "static/*.css", "static/*.js"]
+"stock_agent.eval" = ["*.jsonl"]
