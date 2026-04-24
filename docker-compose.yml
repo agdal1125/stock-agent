@@ -51,7 +51,6 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
-    profiles: ["prod"]   # 로컬 `docker compose up` 기본에서는 제외. `--profile prod` 로 활성.
 
 volumes:
   caddy_data:
