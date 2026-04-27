@@ -15,8 +15,10 @@
 {$PUBLIC_HOST} {
     encode zstd gzip
 
-    # /ask 는 SSE·NDJSON 스트리밍 — 버퍼링 금지
-    @stream path /ask
+    # NDJSON·SSE 스트리밍 경로 — 버퍼링 금지 (즉시 flush)
+    #   /ask                 : 레거시 챗 엔드포인트 (stream:true)
+    #   /api/v1/chat/stream  : v1 챗 NDJSON 스트림
+    @stream path /ask /api/v1/chat/stream
     handle @stream {
         reverse_proxy app:8001 {
             flush_interval -1

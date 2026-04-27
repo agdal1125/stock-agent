@@ -52,7 +52,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     RATE_LIMIT_PER_MIN=30 \
     RATE_LIMIT_PER_HOUR=400 \
     RATE_LIMIT_ASK=10/minute \
-    DAILY_USD_CAP=0
+    DAILY_USD_CAP=0 \
+    WIKI_EDIT_SESSION_TTL=28800
+# WIKI_EDIT_PASSWORD 가 설정되지 않으면 /api/v1/admin/* 는 503 응답.
+# 운영 시 .env 또는 docker run -e WIKI_EDIT_PASSWORD=... 로 주입.
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates tini \
