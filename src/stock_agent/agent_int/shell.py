@@ -13,6 +13,7 @@ from __future__ import annotations
 TAB_CHAT = "chat"
 TAB_EXPLORER = "explorer"
 TAB_HOW = "how"
+TAB_ADMIN = "admin"
 
 
 _SHELL_STYLE = """<style>
@@ -361,9 +362,10 @@ def _sidebar_html(active: str) -> str:
   <div class="brand"><a href="/">NH Stock-Agent</a></div>
   <div class="brand-sub">종목 Wiki를 활용한 범용 질의응답 서비스</div>
   <nav>
-    {_nav_item(TAB_CHAT,     "/",        "💬", "질문",       active)}
-    {_nav_item(TAB_EXPLORER, "/wiki/",   "📂", "Wiki 탐색",  active)}
-    {_nav_item(TAB_HOW,      "/how",     "⚙️", "작동 원리",  active)}
+    {_nav_item(TAB_CHAT,     "/",            "💬", "질문",       active)}
+    {_nav_item(TAB_EXPLORER, "/wiki/",       "📂", "Wiki 탐색",  active)}
+    {_nav_item(TAB_HOW,      "/how",         "⚙️", "작동 원리",  active)}
+    {_nav_item(TAB_ADMIN,    "/wiki/admin",  "🔐", "편집",       active)}
   </nav>
   <div class="spacer"></div>
   <div class="meter-box" id="meterBox">

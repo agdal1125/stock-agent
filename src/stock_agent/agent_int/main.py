@@ -23,10 +23,13 @@ from . import cost as cost_tracker
 from ..l1_index.section_builder import (
     SECTION_DESCRIPTIONS, SECTION_ORDER, SECTION_TYPES,
 )
-from ..l1_index.wiki_loader import TICKERS_ROOT, WIKI_ROOT, load_section_file
+from ..l1_index.wiki_loader import ETFS_ROOT, TICKERS_ROOT, WIKI_ROOT, load_section_file
 from . import cache as answer_cache
+from . import auth as admin_auth
+from .admin import admin_router, auth_router
 from .answer import answer as answer_query, answer_stream
-from .shell import TAB_CHAT, TAB_EXPLORER, TAB_HOW, inject_shell
+from .api import router as api_v1_router
+from .shell import TAB_ADMIN, TAB_CHAT, TAB_EXPLORER, TAB_HOW, inject_shell
 
 
 class UTF8JSONResponse(JSONResponse):
@@ -58,6 +61,13 @@ limiter = Limiter(
 )
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# REST API (/api/v1/...) — 외부 클라이언트용 JSON 데이터 surface
+# OpenAPI/Swagger UI 는 /docs 에서 확인 가능
+app.include_router(api_v1_router)
+# 편집(admin) — 비번 인증 + curated facts CRUD + claim approval
+app.include_router(auth_router)
+app.include_router(admin_router)
 
 
 _STATIC_DIR = Path(__file__).parent / "static"
@@ -517,6 +527,646 @@ def how_page() -> HTMLResponse:
     )
 
 
+# ============================================================================
+# Wiki 편집 (admin) — A) curated facts CRUD + B) claim approval
+# 비번은 env WIKI_EDIT_PASSWORD 로 설정. 로그인 후 토큰은 localStorage 보관.
+# ============================================================================
+
+_ADMIN_HTML = r"""<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="utf-8"><title>편집 — NH Stock-Agent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body { background: #0f172a; color: #e2e8f0;
+         font-family: -apple-system, "Pretendard", "Segoe UI", "Malgun Gothic", sans-serif; }
+  main.adm { max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px; }
+  h1 { font-size: 24px; margin: 0 0 4px; }
+  .lead { color: #94a3b8; font-size: 13px; margin: 0 0 24px; }
+  .panel { background: #1e293b; border: 1px solid #334155;
+           border-radius: 10px; padding: 18px 22px; margin-bottom: 16px; }
+  .panel h2 { margin: 0 0 12px; font-size: 16px; color: #38bdf8; }
+  label { display: block; font-size: 12px; color: #94a3b8; margin: 8px 0 4px; }
+  input[type=text], input[type=password], input[type=number], select, textarea {
+    width: 100%; box-sizing: border-box;
+    background: #0b1220; color: #e2e8f0;
+    border: 1px solid #334155; border-radius: 6px;
+    padding: 8px 10px; font-size: 13px;
+    font-family: inherit;
+  }
+  textarea { min-height: 80px; resize: vertical; line-height: 1.55; }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56,189,248,.15);
+  }
+  button {
+    background: #38bdf8; color: #0b1220; border: 0;
+    border-radius: 6px; padding: 8px 14px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background .12s;
+  }
+  button:hover { background: #7dd3fc; }
+  button.ghost { background: #334155; color: #e2e8f0; }
+  button.ghost:hover { background: #475569; }
+  button.danger { background: #ef4444; color: #fff; }
+  button.danger:hover { background: #f87171; }
+  button.ok { background: #22c55e; color: #052e0f; }
+  button.ok:hover { background: #4ade80; }
+  .row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+  .row > * { flex: 1 1 160px; min-width: 0; }
+  .row > .grow { flex: 3 1 320px; }
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+  .tab-btn {
+    background: #1e293b; color: #cbd5e1;
+    border: 1px solid #334155; border-radius: 8px;
+    padding: 8px 14px; cursor: pointer; font-weight: 600; font-size: 13px;
+  }
+  .tab-btn.active { background: rgba(56,189,248,.18); color: #7dd3fc;
+                    border-color: #38bdf8; }
+  .grid {
+    display: grid; gap: 8px; font-size: 12.5px;
+    grid-template-columns: 70px 110px 1fr 60px 110px 130px;
+  }
+  .grid.claims { grid-template-columns: 60px 70px 90px 1fr 60px 80px 180px; }
+  .grid > .h { color: #64748b; font-size: 11px;
+               text-transform: uppercase; letter-spacing: 0.06em;
+               padding: 6px 4px; border-bottom: 1px solid #334155; }
+  .grid > .c {
+    padding: 8px 4px; border-bottom: 1px solid #1f2937;
+    color: #cbd5e1; word-break: keep-all; overflow-wrap: anywhere;
+  }
+  .grid > .c.mono { font-family: Consolas, Menlo, monospace; color: #94a3b8;
+                    font-size: 11.5px; }
+  .grid > .c .row-actions { display: flex; gap: 4px; flex-wrap: wrap; }
+  .grid > .c .row-actions button {
+    padding: 4px 8px; font-size: 11px;
+  }
+  .pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 10.5px; font-weight: 700;
+  }
+  .pill.pending { background: rgba(251,191,36,.18); color: #fbbf24; }
+  .pill.approved { background: rgba(34,197,94,.18); color: #4ade80; }
+  .pill.rejected { background: rgba(239,68,68,.18); color: #f87171; }
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: #0b1220; border: 1px solid #334155;
+    border-left: 4px solid #38bdf8;
+    color: #e2e8f0; padding: 10px 16px; font-size: 13px;
+    border-radius: 6px; z-index: 100; max-width: 360px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .2s, transform .2s;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.err { border-left-color: #ef4444; }
+  .toast.ok { border-left-color: #22c55e; }
+  .login-box {
+    max-width: 360px; margin: 64px auto 0;
+    background: #1e293b; border: 1px solid #334155;
+    border-radius: 10px; padding: 28px 28px 24px;
+  }
+  .login-box h2 { margin: 0 0 6px; color: #e2e8f0; font-size: 18px; }
+  .login-box p { color: #94a3b8; font-size: 12.5px; margin: 0 0 18px; }
+  .empty { color: #64748b; font-size: 13px; padding: 20px 4px; text-align: center; }
+  .session-info { font-size: 11px; color: #64748b; }
+  .session-info b { color: #94a3b8; }
+  .help { font-size: 11px; color: #64748b; margin-top: 4px; }
+</style>
+</head>
+<body>
+<main class="adm">
+  <h1>🔐 Wiki 편집</h1>
+  <p class="lead">
+    A) <b>Curated Facts</b> 를 편집하면 <code>seed/wiki_facts.csv</code> 가 갱신되고,
+    해당 종목의 wiki 가 자동으로 재컴파일됩니다.
+    B) <b>Pending Claims</b> 는 LLM 이 추출한 미승인 문장 — 본문을 다듬어 승인하면 wiki 에 노출됩니다.
+  </p>
+
+  <div id="login-view" class="login-box" hidden>
+    <h2>비밀번호 로그인</h2>
+    <p>운영자 비밀번호를 입력하세요. (env <code>WIKI_EDIT_PASSWORD</code>)</p>
+    <input id="pw" type="password" placeholder="••••••••" autocomplete="current-password">
+    <div style="margin-top: 14px">
+      <button id="loginBtn">로그인</button>
+    </div>
+    <div id="loginErr" class="help" style="color:#f87171; min-height: 16px; margin-top: 10px"></div>
+  </div>
+
+  <div id="dashboard-view" hidden>
+    <div class="toolbar" style="margin-bottom: 14px; justify-content: space-between">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="facts">A) Curated Facts</button>
+        <button class="tab-btn" data-tab="claims">B) Pending Claims</button>
+      </div>
+      <div class="session-info">
+        세션 만료: <b id="sessExpire">—</b>
+        <button id="logoutBtn" class="ghost" style="margin-left: 12px">로그아웃</button>
+      </div>
+    </div>
+
+    <!-- ===== A) Curated Facts ===== -->
+    <section data-pane="facts">
+      <div class="panel">
+        <h2>새 fact 추가</h2>
+        <div class="row">
+          <div>
+            <label>ticker (6자리)</label>
+            <input id="f_ticker" type="text" maxlength="6" placeholder="005930">
+          </div>
+          <div>
+            <label>section_type</label>
+            <select id="f_section">
+              <option value="profile">profile</option>
+              <option value="latest_events">latest_events</option>
+              <option value="business">business</option>
+              <option value="finance">finance</option>
+              <option value="relations">relations</option>
+              <option value="theme">theme</option>
+            </select>
+          </div>
+          <div>
+            <label>confidence (0~1)</label>
+            <input id="f_conf" type="number" min="0" max="1" step="0.01" value="0.9">
+          </div>
+        </div>
+        <label>claim_text</label>
+        <textarea id="f_text" placeholder="검증 가능한 사실 한 문장. 50자 내외."></textarea>
+        <div class="row" style="margin-top: 8px">
+          <div>
+            <label>source_label</label>
+            <input id="f_label" type="text" value="Curated">
+          </div>
+          <div class="grow">
+            <label>source_url (선택)</label>
+            <input id="f_url" type="text" placeholder="https://...">
+          </div>
+          <div style="flex: 0 0 auto">
+            <label>&nbsp;</label>
+            <button id="addFactBtn" class="ok">추가 + 재컴파일</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>기존 facts</h2>
+        <div class="toolbar" style="margin-bottom: 10px">
+          <select id="filt_ticker"><option value="">[ticker 전체]</option></select>
+          <select id="filt_section">
+            <option value="">[section 전체]</option>
+            <option value="profile">profile</option>
+            <option value="latest_events">latest_events</option>
+            <option value="business">business</option>
+            <option value="finance">finance</option>
+            <option value="relations">relations</option>
+            <option value="theme">theme</option>
+          </select>
+          <button id="reloadFactsBtn" class="ghost">↻ 새로고침</button>
+        </div>
+        <div class="grid" id="factsGrid">
+          <div class="h">ticker</div>
+          <div class="h">section</div>
+          <div class="h">claim_text</div>
+          <div class="h">conf</div>
+          <div class="h">source</div>
+          <div class="h">action</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== B) Pending Claims ===== -->
+    <section data-pane="claims" hidden>
+      <div class="panel">
+        <h2>미승인 claim 리뷰</h2>
+        <div class="toolbar" style="margin-bottom: 10px">
+          <select id="claim_state">
+            <option value="pending">pending</option>
+            <option value="approved">approved</option>
+            <option value="rejected">rejected</option>
+            <option value="all">all</option>
+          </select>
+          <select id="claim_ticker_filt"><option value="">[ticker 전체]</option></select>
+          <button id="reloadClaimsBtn" class="ghost">↻ 새로고침</button>
+        </div>
+        <div class="grid claims" id="claimsGrid">
+          <div class="h">id</div>
+          <div class="h">ticker</div>
+          <div class="h">section</div>
+          <div class="h">claim_text</div>
+          <div class="h">conf</div>
+          <div class="h">state</div>
+          <div class="h">action</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function () {
+  // ---------- 상태 ----------
+  const TOK_KEY = "wiki_edit_token";
+  const EXP_KEY = "wiki_edit_expires_at";
+  let tickers = [];   // ticker_master 캐시 (필터 dropdown 채우기용)
+
+  function token() { return localStorage.getItem(TOK_KEY); }
+  function setSession(t, exp) {
+    localStorage.setItem(TOK_KEY, t);
+    localStorage.setItem(EXP_KEY, String(exp));
+  }
+  function clearSession() {
+    localStorage.removeItem(TOK_KEY);
+    localStorage.removeItem(EXP_KEY);
+  }
+
+  function showLogin() {
+    document.getElementById("login-view").hidden = false;
+    document.getElementById("dashboard-view").hidden = true;
+  }
+  function showDashboard() {
+    document.getElementById("login-view").hidden = true;
+    document.getElementById("dashboard-view").hidden = false;
+    const exp = Number(localStorage.getItem(EXP_KEY) || 0);
+    if (exp > 0) {
+      document.getElementById("sessExpire").textContent =
+        new Date(exp * 1000).toLocaleString("ko-KR");
+    }
+    loadTickers().then(() => {
+      reloadFacts();
+      reloadClaims();
+    });
+  }
+
+  function toast(msg, type) {
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.className = "toast show " + (type || "");
+    setTimeout(() => { el.className = "toast"; }, 3200);
+  }
+
+  async function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({"Content-Type": "application/json"},
+                                 opts.headers || {});
+    const t = token();
+    if (t) opts.headers["Authorization"] = "Bearer " + t;
+    const r = await fetch(path, opts);
+    let body = null;
+    try { body = await r.json(); } catch (_) {}
+    if (r.status === 401) {
+      clearSession(); showLogin();
+      throw new Error((body && body.detail) || "인증이 필요합니다");
+    }
+    if (!r.ok) {
+      throw new Error((body && body.detail) || ("HTTP " + r.status));
+    }
+    return body;
+  }
+
+  // ---------- Login ----------
+  async function doLogin() {
+    const pw = document.getElementById("pw").value;
+    const errEl = document.getElementById("loginErr");
+    errEl.textContent = "";
+    if (!pw) { errEl.textContent = "비밀번호를 입력하세요"; return; }
+    try {
+      const r = await fetch("/api/v1/auth/login", {
+        method: "POST", headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({password: pw}),
+      });
+      const j = await r.json();
+      if (!r.ok) {
+        errEl.textContent = j.detail || "로그인 실패";
+        return;
+      }
+      setSession(j.token, j.expires_at);
+      document.getElementById("pw").value = "";
+      showDashboard();
+    } catch (e) {
+      errEl.textContent = "네트워크 오류: " + e.message;
+    }
+  }
+
+  async function doLogout() {
+    const t = token();
+    if (t) {
+      try {
+        await fetch("/api/v1/auth/logout", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({token: t}),
+        });
+      } catch (_) {}
+    }
+    clearSession();
+    showLogin();
+  }
+
+  // ---------- Tickers (필터 dropdown) ----------
+  async function loadTickers() {
+    try {
+      const j = await api("/api/v1/tickers");
+      tickers = j.items || [];
+      const fillSelects = ["filt_ticker", "claim_ticker_filt"];
+      for (const id of fillSelects) {
+        const sel = document.getElementById(id);
+        const cur = sel.value;
+        sel.innerHTML = '<option value="">[ticker 전체]</option>';
+        for (const t of tickers) {
+          const opt = document.createElement("option");
+          opt.value = t.ticker;
+          opt.textContent = `${t.ticker} ${t.name_ko}` +
+                            (t.asset_type === "etf" ? "  · ETF" : "");
+          sel.appendChild(opt);
+        }
+        sel.value = cur || "";
+      }
+    } catch (e) {
+      toast("종목 마스터 로드 실패: " + e.message, "err");
+    }
+  }
+
+  function tickerLabel(code) {
+    const t = tickers.find(x => x.ticker === code);
+    return t ? `${code} ${t.name_ko}` : code;
+  }
+
+  // ---------- Facts ----------
+  function escHTML(s) {
+    return (s || "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+    })[c]);
+  }
+
+  async function reloadFacts() {
+    const ticker = document.getElementById("filt_ticker").value;
+    const section = document.getElementById("filt_section").value;
+    const params = new URLSearchParams();
+    if (ticker) params.set("ticker", ticker);
+    if (section) params.set("section_type", section);
+    let j;
+    try { j = await api("/api/v1/admin/facts?" + params.toString()); }
+    catch (e) { toast("facts 로드 실패: " + e.message, "err"); return; }
+
+    const grid = document.getElementById("factsGrid");
+    // 헤더만 남기고 행 비우기
+    grid.querySelectorAll(".c, .empty-row").forEach(el => el.remove());
+    if (!j.items.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty empty-row";
+      empty.style.gridColumn = "1 / -1";
+      empty.textContent = "조건에 맞는 fact 가 없습니다.";
+      grid.appendChild(empty);
+      return;
+    }
+    for (const r of j.items) {
+      addFactRow(grid, r);
+    }
+  }
+
+  function addFactRow(grid, r) {
+    const cells = [
+      `<div class="c mono">${escHTML(r.ticker)}</div>`,
+      `<div class="c mono">${escHTML(r.section_type)}</div>`,
+      `<div class="c" data-field="text">${escHTML(r.claim_text)}</div>`,
+      `<div class="c" data-field="conf">${Number(r.confidence).toFixed(2)}</div>`,
+      `<div class="c">${
+        r.source_url
+          ? `<a href="${escHTML(r.source_url)}" target="_blank" rel="noopener">${escHTML(r.source_label)}</a>`
+          : escHTML(r.source_label)
+      }</div>`,
+      `<div class="c">
+        <div class="row-actions">
+          <button class="ghost" data-act="edit">수정</button>
+          <button class="danger" data-act="del">삭제</button>
+        </div>
+      </div>`,
+    ];
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "contents";
+    wrapper.innerHTML = cells.join("");
+    grid.appendChild(wrapper);
+
+    const editBtn = wrapper.querySelector('[data-act="edit"]');
+    const delBtn  = wrapper.querySelector('[data-act="del"]');
+    editBtn.addEventListener("click", () => editFact(r, wrapper));
+    delBtn.addEventListener("click", () => deleteFact(r));
+  }
+
+  function editFact(r, wrapper) {
+    const textCell = wrapper.querySelector('[data-field="text"]');
+    const confCell = wrapper.querySelector('[data-field="conf"]');
+    textCell.innerHTML = `<textarea>${escHTML(r.claim_text)}</textarea>`;
+    confCell.innerHTML = `<input type="number" min="0" max="1" step="0.01" value="${Number(r.confidence).toFixed(2)}">`;
+    const actCell = wrapper.children[5];
+    actCell.innerHTML = `
+      <div class="row-actions">
+        <button class="ok" data-act="save">저장</button>
+        <button class="ghost" data-act="cancel">취소</button>
+      </div>`;
+    actCell.querySelector('[data-act="save"]').addEventListener("click", async () => {
+      const newText = textCell.querySelector("textarea").value.trim();
+      const newConf = parseFloat(confCell.querySelector("input").value);
+      if (!newText || newText.length < 2) { toast("claim_text 가 너무 짧습니다", "err"); return; }
+      try {
+        const j = await api("/api/v1/admin/facts", {
+          method: "PUT", body: JSON.stringify({
+            ticker: r.ticker, section_type: r.section_type, claim_text: r.claim_text,
+            new_claim_text: newText, new_confidence: isNaN(newConf) ? null : newConf,
+          }),
+        });
+        toast(`수정 완료: ${j.ticker} (${j.recompiled_sections} 섹션 재컴파일)`, "ok");
+        reloadFacts();
+      } catch (e) { toast("수정 실패: " + e.message, "err"); }
+    });
+    actCell.querySelector('[data-act="cancel"]').addEventListener("click", () => reloadFacts());
+  }
+
+  async function deleteFact(r) {
+    if (!confirm(`삭제하시겠습니까?\n\n${r.ticker} / ${r.section_type}\n${r.claim_text.slice(0, 80)}`))
+      return;
+    try {
+      const j = await api("/api/v1/admin/facts", {
+        method: "DELETE", body: JSON.stringify({
+          ticker: r.ticker, section_type: r.section_type, claim_text: r.claim_text,
+        }),
+      });
+      toast(`삭제 완료: ${j.ticker} (${j.recompiled_sections} 섹션 재컴파일)`, "ok");
+      reloadFacts();
+    } catch (e) { toast("삭제 실패: " + e.message, "err"); }
+  }
+
+  async function addFact() {
+    const ticker = document.getElementById("f_ticker").value.trim();
+    const section_type = document.getElementById("f_section").value;
+    const claim_text = document.getElementById("f_text").value.trim();
+    const confidence = parseFloat(document.getElementById("f_conf").value);
+    const source_label = document.getElementById("f_label").value.trim() || "Curated";
+    const source_url = document.getElementById("f_url").value.trim();
+    if (!/^\d{6}$/.test(ticker)) { toast("ticker 는 6자리 숫자여야 합니다", "err"); return; }
+    if (!claim_text || claim_text.length < 2) { toast("claim_text 가 너무 짧습니다", "err"); return; }
+    if (isNaN(confidence) || confidence < 0 || confidence > 1) {
+      toast("confidence 는 0~1", "err"); return;
+    }
+    try {
+      const j = await api("/api/v1/admin/facts", {
+        method: "POST", body: JSON.stringify({
+          ticker, section_type, claim_text, confidence, source_label, source_url,
+        }),
+      });
+      toast(`추가 완료: ${j.ticker} (${j.recompiled_sections} 섹션 재컴파일)`, "ok");
+      document.getElementById("f_text").value = "";
+      document.getElementById("f_url").value = "";
+      reloadFacts();
+    } catch (e) { toast("추가 실패: " + e.message, "err"); }
+  }
+
+  // ---------- Claims ----------
+  async function reloadClaims() {
+    const state = document.getElementById("claim_state").value;
+    const ticker = document.getElementById("claim_ticker_filt").value;
+    const params = new URLSearchParams({state, limit: "100"});
+    if (ticker) params.set("ticker", ticker);
+    let j;
+    try { j = await api("/api/v1/admin/claims?" + params.toString()); }
+    catch (e) { toast("claims 로드 실패: " + e.message, "err"); return; }
+
+    const grid = document.getElementById("claimsGrid");
+    grid.querySelectorAll(".c, .empty-row").forEach(el => el.remove());
+    if (!j.items.length) {
+      const empty = document.createElement("div");
+      empty.className = "empty empty-row";
+      empty.style.gridColumn = "1 / -1";
+      empty.textContent = `[${state}] 상태의 claim 이 없습니다.`;
+      grid.appendChild(empty);
+      return;
+    }
+    for (const r of j.items) addClaimRow(grid, r);
+  }
+
+  function addClaimRow(grid, r) {
+    const cells = [
+      `<div class="c mono">#${r.claim_id}</div>`,
+      `<div class="c mono">${escHTML(r.ticker)}</div>`,
+      `<div class="c mono">${escHTML(r.section_type)}</div>`,
+      `<div class="c" data-field="text">${escHTML(r.claim_text)}</div>`,
+      `<div class="c" data-field="conf">${Number(r.confidence).toFixed(2)}</div>`,
+      `<div class="c"><span class="pill ${r.review_state}">${r.review_state}</span></div>`,
+      `<div class="c">
+        <div class="row-actions">
+          <button class="ok" data-act="approve">승인</button>
+          <button class="ghost" data-act="edit">수정 후 승인</button>
+          <button class="danger" data-act="reject">거절</button>
+        </div>
+      </div>`,
+    ];
+    const wrapper = document.createElement("div");
+    wrapper.style.display = "contents";
+    wrapper.innerHTML = cells.join("");
+    grid.appendChild(wrapper);
+    wrapper.querySelector('[data-act="approve"]').addEventListener("click",
+      () => approveClaim(r.claim_id, null));
+    wrapper.querySelector('[data-act="reject"]').addEventListener("click",
+      () => rejectClaim(r.claim_id));
+    wrapper.querySelector('[data-act="edit"]').addEventListener("click",
+      () => editAndApprove(r, wrapper));
+  }
+
+  function editAndApprove(r, wrapper) {
+    const textCell = wrapper.querySelector('[data-field="text"]');
+    const confCell = wrapper.querySelector('[data-field="conf"]');
+    textCell.innerHTML = `<textarea>${escHTML(r.claim_text)}</textarea>`;
+    confCell.innerHTML = `<input type="number" min="0" max="1" step="0.01" value="${Number(r.confidence).toFixed(2)}">`;
+    const actCell = wrapper.children[6];
+    actCell.innerHTML = `
+      <div class="row-actions">
+        <button class="ok" data-act="save">수정 + 승인</button>
+        <button class="ghost" data-act="cancel">취소</button>
+      </div>`;
+    actCell.querySelector('[data-act="save"]').addEventListener("click", async () => {
+      const newText = textCell.querySelector("textarea").value.trim();
+      const newConf = parseFloat(confCell.querySelector("input").value);
+      if (!newText || newText.length < 2) { toast("claim_text 가 너무 짧습니다", "err"); return; }
+      await approveClaim(r.claim_id, {
+        claim_text: newText,
+        confidence: isNaN(newConf) ? null : newConf,
+      });
+    });
+    actCell.querySelector('[data-act="cancel"]').addEventListener("click", () => reloadClaims());
+  }
+
+  async function approveClaim(claim_id, update) {
+    try {
+      const j = await api(`/api/v1/admin/claims/${claim_id}/approve`,
+        update ? { method: "POST", body: JSON.stringify(update) } : { method: "POST" });
+      toast(`#${claim_id} 승인 완료 (${j.ticker}, ${j.recompiled_sections} 섹션 재컴파일)`, "ok");
+      reloadClaims();
+    } catch (e) { toast("승인 실패: " + e.message, "err"); }
+  }
+  async function rejectClaim(claim_id) {
+    if (!confirm(`claim #${claim_id} 을 거절하시겠습니까?`)) return;
+    try {
+      const j = await api(`/api/v1/admin/claims/${claim_id}/reject`, {method:"POST"});
+      toast(`#${claim_id} 거절 완료`, "ok");
+      reloadClaims();
+    } catch (e) { toast("거절 실패: " + e.message, "err"); }
+  }
+
+  // ---------- Tabs ----------
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      const which = btn.dataset.tab;
+      document.querySelectorAll('section[data-pane]').forEach(s => {
+        s.hidden = s.dataset.pane !== which;
+      });
+    });
+  });
+
+  // ---------- 이벤트 ----------
+  document.getElementById("loginBtn").addEventListener("click", doLogin);
+  document.getElementById("pw").addEventListener("keydown", e => {
+    if (e.key === "Enter") doLogin();
+  });
+  document.getElementById("logoutBtn").addEventListener("click", doLogout);
+  document.getElementById("addFactBtn").addEventListener("click", addFact);
+  document.getElementById("reloadFactsBtn").addEventListener("click", reloadFacts);
+  document.getElementById("filt_ticker").addEventListener("change", reloadFacts);
+  document.getElementById("filt_section").addEventListener("change", reloadFacts);
+  document.getElementById("reloadClaimsBtn").addEventListener("click", reloadClaims);
+  document.getElementById("claim_state").addEventListener("change", reloadClaims);
+  document.getElementById("claim_ticker_filt").addEventListener("change", reloadClaims);
+
+  // ---------- 초기 ----------
+  fetch("/api/v1/auth/status").then(r => r.json()).then(j => {
+    if (!j.enabled) {
+      document.getElementById("login-view").innerHTML =
+        `<h2>🔒 편집 비활성화</h2>
+         <p>운영자가 <code>WIKI_EDIT_PASSWORD</code> 환경변수를 설정하면 활성화됩니다.</p>`;
+      document.getElementById("login-view").hidden = false;
+      document.getElementById("dashboard-view").hidden = true;
+      return;
+    }
+    if (!token()) { showLogin(); return; }
+    showDashboard();
+  });
+})();
+</script>
+</body></html>"""
+
+
+@app.get("/wiki/admin", response_class=HTMLResponse, include_in_schema=False)
+def wiki_admin_page() -> HTMLResponse:
+    """편집 대시보드: 비밀번호 → curated facts CRUD + claim approval.
+
+    실제 인증·CRUD 는 /api/v1/auth/* + /api/v1/admin/* 가 처리. 본 페이지는 SPA 셸.
+    """
+    return HTMLResponse(
+        content=inject_shell(_ADMIN_HTML, TAB_ADMIN),
+        media_type="text/html; charset=utf-8",
+    )
+
+
 @app.get("/health")
 def health() -> dict[str, Any]:
     with tx() as conn:
@@ -639,6 +1289,7 @@ def wiki_index() -> HTMLResponse:
     with tx() as conn:
         rows = conn.execute(
             """SELECT tm.ticker, tm.name_ko, tm.market, tm.sector,
+                      COALESCE(tm.asset_type,'stock') AS asset_type,
                       COALESCE(tt.tier,'lazy') AS tier,
                       COUNT(sd.doc_id) AS sec_n,
                       MAX(sd.updated_at) AS updated_at
@@ -678,6 +1329,9 @@ def wiki_index() -> HTMLResponse:
         name = r["name_ko"]
         market = r["market"] or ""
         sector = r["sector"] or ""
+        asset_type = r["asset_type"] or "stock"
+        base_dir = "etfs" if asset_type == "etf" else "tickers"
+        root_dir = ETFS_ROOT if asset_type == "etf" else TICKERS_ROOT
         tier = r["tier"]
         updated = (r["updated_at"] or "")[:19]
 
@@ -700,7 +1354,7 @@ def wiki_index() -> HTMLResponse:
                 for s in secs
             )
             # SKILL.md 는 별도 표기
-            tdir_path = TICKERS_ROOT / tk
+            tdir_path = root_dir / tk
             if (tdir_path / "SKILL.md").is_file():
                 files_inner += (
                     f'<li class="file-line">'
@@ -730,7 +1384,7 @@ def wiki_index() -> HTMLResponse:
           <summary class="folder-sum">
             <span class="folder-caret">▸</span>
             <span class="folder-icon">{'📁' if compiled else '📂'}</span>
-            <span class="folder-code">{tk}/</span>
+            <span class="folder-code">{base_dir}/{tk}/</span>
             <span class="folder-name">{name}</span>
             <span class="folder-meta">{meta}</span>
           </summary>
@@ -863,7 +1517,7 @@ def wiki_index() -> HTMLResponse:
         </p>
       </div>
       <div class="hero-stats">
-        <div class="stat"><div class="num">{len(rows)}</div><div class="lbl">tickers</div></div>
+        <div class="stat"><div class="num">{len(rows)}</div><div class="lbl">items</div></div>
         <div class="stat"><div class="num">{total_compiled}</div><div class="lbl">compiled</div></div>
         <div class="stat"><div class="num">{total_ghost}</div><div class="lbl">ghost</div></div>
         <div class="stat"><div class="num">{total_eager}</div><div class="lbl">eager</div></div>
@@ -877,7 +1531,7 @@ def wiki_index() -> HTMLResponse:
     <div class="section-heading">전역 파일</div>
     <ul class="global-files">{global_files_html}</ul>
 
-    <div class="section-heading">종목별 폴더 (<code>wiki/tickers/</code>)</div>
+    <div class="section-heading">종목·ETF 폴더 (<code>wiki/tickers/</code>, <code>wiki/etfs/</code>)</div>
     <div class="folders">
       {ticker_blocks}
     </div>
@@ -887,7 +1541,7 @@ def wiki_index() -> HTMLResponse:
         title="Wiki · File Browser",
         header_title="🗂️ <span style='color:#64748b;font-weight:400'>wiki/</span>",
         badges_html=('<span class="badge sector">Markdown 저장소</span>'
-                     f'<span class="badge sector">{len(rows)} tickers</span>'),
+                     f'<span class="badge sector">{len(rows)} instruments</span>'),
         nav_html=('<a href="/wiki/AGENTS.md">📘 AGENTS.md</a> '
                   '<a href="/wiki/log.md">📝 log.md</a> '
                   '<a href="/wiki/tags/">🏷️ tags</a>'),
@@ -936,6 +1590,7 @@ def wiki_tree() -> dict[str, Any]:
     with tx() as conn:
         ticker_rows = conn.execute(
             """SELECT tm.ticker, tm.name_ko, tm.market, tm.sector,
+                      COALESCE(tm.asset_type,'stock') AS asset_type,
                       COALESCE(tt.tier, 'lazy') AS tier,
                       COUNT(sd.doc_id) AS sec_n
                FROM ticker_master tm
@@ -964,13 +1619,15 @@ def wiki_tree() -> dict[str, Any]:
     tickers_out = []
     for r in ticker_rows:
         tk = r["ticker"]
-        tdir = TICKERS_ROOT / tk
+        asset_type = r["asset_type"] or "stock"
+        tdir = (ETFS_ROOT if asset_type == "etf" else TICKERS_ROOT) / tk
         compiled = bool(r["sec_n"]) and tdir.is_dir()
         tickers_out.append({
             "ticker": tk,
             "name_ko": r["name_ko"],
             "market": r["market"] or "",
             "sector": r["sector"] or "",
+            "asset_type": asset_type,
             "tier": r["tier"],
             "compiled": compiled,
             "sections": by_ticker.get(tk, []) if compiled else [],
@@ -981,7 +1638,15 @@ def wiki_tree() -> dict[str, Any]:
 def _ensure_ticker_compiled(ticker: str) -> bool:
     """ticker_master 에 등록된 ghost 종목이면 lazy compile 발동.
     반환: True = 이미 컴파일됐거나 이번에 성공, False = master에 없음."""
-    tdir = TICKERS_ROOT / ticker
+    with tx() as conn:
+        row = conn.execute(
+            "SELECT COALESCE(asset_type,'stock') AS asset_type FROM ticker_master WHERE ticker=?",
+            (ticker,),
+        ).fetchone()
+    if not row:
+        return False
+    asset_type = row["asset_type"] or "stock"
+    tdir = (ETFS_ROOT if asset_type == "etf" else TICKERS_ROOT) / ticker
     if tdir.is_dir():
         with tx() as conn:
             n = conn.execute(
@@ -989,12 +1654,6 @@ def _ensure_ticker_compiled(ticker: str) -> bool:
             ).fetchone()["n"]
         if n:
             return True
-    with tx() as conn:
-        row = conn.execute(
-            "SELECT 1 FROM ticker_master WHERE ticker=?", (ticker,)
-        ).fetchone()
-    if not row:
-        return False
     lazy_compile(ticker)
     return True
 
@@ -1003,7 +1662,14 @@ def _ensure_ticker_compiled(ticker: str) -> bool:
 def wiki_ticker(ticker: str) -> HTMLResponse:
     if not _TICKER_RE.match(ticker):
         raise HTTPException(400, "ticker must be 6-digit code")
-    tdir = TICKERS_ROOT / ticker
+    with tx() as conn:
+        master_row = conn.execute(
+            "SELECT COALESCE(asset_type,'stock') AS asset_type FROM ticker_master WHERE ticker=?",
+            (ticker,),
+        ).fetchone()
+    asset_type = (master_row["asset_type"] if master_row else "stock") or "stock"
+    root_name = "etfs" if asset_type == "etf" else "tickers"
+    tdir = (ETFS_ROOT if asset_type == "etf" else TICKERS_ROOT) / ticker
     if not tdir.is_dir():
         # ghost 티커 자동 컴파일 — ticker_master 에 등록되어 있으면 on-demand 생성
         if not _ensure_ticker_compiled(ticker):
@@ -1011,11 +1677,12 @@ def wiki_ticker(ticker: str) -> HTMLResponse:
                 404,
                 f"{ticker}는 ticker_master에 등록되어 있지 않습니다."
             )
+        tdir = (ETFS_ROOT if asset_type == "etf" else TICKERS_ROOT) / ticker
 
     # metadata + tags + backlinks
     with tx() as conn:
         tm = conn.execute(
-            "SELECT name_ko, sector, market FROM ticker_master WHERE ticker=?",
+            "SELECT name_ko, sector, market, COALESCE(asset_type,'stock') AS asset_type FROM ticker_master WHERE ticker=?",
             (ticker,),
         ).fetchone()
         tag_rows = conn.execute(
@@ -1052,10 +1719,13 @@ def wiki_ticker(ticker: str) -> HTMLResponse:
     name_ko = tm["name_ko"] if tm else ticker
     sector = tm["sector"] if tm else "-"
     market = tm["market"] if tm else ""
+    asset_type = tm["asset_type"] if tm else asset_type
+    root_name = "etfs" if asset_type == "etf" else "tickers"
 
     badges_parts = [f'<span class="badge ticker">{ticker}</span>']
     if market:
         badges_parts.append(f'<span class="badge market">{market}</span>')
+    badges_parts.append(f'<span class="badge sector">{asset_type}</span>')
     badges_parts.append(f'<span class="badge sector">{sector}</span>')
     badges = "".join(badges_parts)
 
@@ -1073,7 +1743,7 @@ def wiki_ticker(ticker: str) -> HTMLResponse:
         )
 
     # 디스크 경로 베이스 (시각화용)
-    path_base = f"wiki/tickers/{ticker}"
+    path_base = f"wiki/{root_name}/{ticker}"
 
     # ---------- 파일 카드 빌더 ------------------------------------------------
     def file_card(
@@ -1163,7 +1833,7 @@ def wiki_ticker(ticker: str) -> HTMLResponse:
         <span class="crumb">📁</span>
         <a href="/wiki/">wiki</a>
         <span class="sep">/</span>
-        <span>tickers</span>
+        <span>{root_name}</span>
         <span class="sep">/</span>
         <span class="crumb-current">{ticker}/</span>
       </div>
@@ -1371,9 +2041,9 @@ def wiki_ticker(ticker: str) -> HTMLResponse:
                 + (' <a href="#sec-backlinks">⟵ backlinks</a>' if backlinks_html else ''))
 
     html = _render_wiki_tmpl(
-        title=f"{name_ko} ({ticker}) — wiki/tickers/{ticker}/",
+        title=f"{name_ko} ({ticker}) — wiki/{root_name}/{ticker}/",
         header_title=(f'<span style="font-family:Consolas,Menlo,monospace;color:#64748b;font-weight:400;font-size:14px">'
-                      f'wiki/tickers/</span>'
+                      f'wiki/{root_name}/</span>'
                       f'<span style="font-family:Consolas,Menlo,monospace;color:#38bdf8;font-weight:700">{ticker}</span>'
                       f'<span style="font-family:Consolas,Menlo,monospace;color:#64748b;font-weight:400;font-size:14px">/</span>'
                       f' &nbsp; <span style="font-size:15px;font-weight:500">{name_ko}</span>'),

@@ -45,10 +45,10 @@ FRESHNESS_SLA: dict[Intent, int] = {
 #      (별도 risk 섹션이 없음 → 재무 가이던스·경쟁 관계로 커버)
 _RULES: list[tuple[re.Pattern, Intent]] = [
     (re.compile(r"(종토방|종목토론|리딩방|커뮤니티|SNS|트윗|텔레그램|분위기|분위기어때)"), "sns_buzz"),
-    (re.compile(r"(오늘|지금|방금|최근|왜|급등|급락|특징주|이슈|뉴스|공시)"), "latest_issue"),
-    (re.compile(r"(실적|매출|영업이익|PER|PBR|EPS|배당|재무|가이던스|수익성|리스크|위험|하방|부담)"), "finance"),
+    (re.compile(r"(오늘|지금|방금|최근|왜|급등|급락|특징주|이슈|뉴스|공시|소식|공급|시황|처방|스텔라라|바이오시밀러|코파일럿|데이터센터|월드투어|수혜|상황|퀄|확보|보도|출하)"), "latest_issue"),
+    (re.compile(r"(실적|매출|영업이익|PER|PBR|EPS|배당|재무|가이던스|수익성|리스크|위험|하방|부담|총보수|보수|순자산|시가총액|NAV)"), "finance"),
     (re.compile(r"(경쟁|협력|관련주|밸류체인|고객|납품|자회사|계열)"), "relations"),
-    (re.compile(r"(테마|섹터|업종|정책|사이클)"), "theme"),
+    (re.compile(r"(테마|섹터|업종|정책|사이클|ETF|기초지수|추종|코스피200|S&P500|나스닥100)"), "theme"),
     (re.compile(r"(뭐하는|무슨 회사|어떤 회사|사업|비즈니스|제품|개요|소개)"), "business_model"),
 ]
 

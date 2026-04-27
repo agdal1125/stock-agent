@@ -2,7 +2,7 @@
 ticker: "068270"
 name_ko: "셀트리온"
 kind: skill
-updated_at: "2026-04-24T04:36:16+00:00"
+updated_at: "2026-04-27T01:17:38+00:00"
 ---
 
 # 셀트리온 (068270) — SKILL

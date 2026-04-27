@@ -2,7 +2,7 @@
 ticker: "032820"
 name_ko: "우리기술"
 kind: skill
-updated_at: "2026-04-24T04:36:15+00:00"
+updated_at: "2026-04-27T01:17:38+00:00"
 ---
 
 # 우리기술 (032820) — SKILL

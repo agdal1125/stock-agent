@@ -3,3 +3,34 @@
 - `2026-04-24T04:36:19+00:00` — eager pipeline: eager=5, compiled=5, sections=35, embeds=35
 - `2026-04-24T04:46:02+00:00` — lazy compile: 012510 (7 sections)
 - `2026-04-24T04:46:12+00:00` — lazy compile: 005940 (7 sections)
+- `2026-04-26T23:35:39+00:00` — manual rebuild after ETF/finance facts: tickers=13, sections=91, embeds=56
+- `2026-04-26T23:38:53+00:00` — manual rebuild after router/ETF template update: tickers=13, sections=91, embeds=13
+- `2026-04-27T01:14:27+00:00` — eager pipeline: eager=5, compiled=5, sections=35, embeds=35
+- `2026-04-27T01:15:39+00:00` — eager pipeline: eager=5, compiled=5, sections=35, embeds=35
+- `2026-04-27T01:15:39+00:00` — lazy compile: 004090 (7 sections)
+- `2026-04-27T01:15:40+00:00` — lazy compile: 005940 (7 sections)
+- `2026-04-27T01:15:40+00:00` — lazy compile: 010170 (7 sections)
+- `2026-04-27T01:15:40+00:00` — lazy compile: 012510 (7 sections)
+- `2026-04-27T01:15:40+00:00` — lazy compile: 035900 (7 sections)
+- `2026-04-27T01:15:40+00:00` — lazy compile: 069500 (7 sections)
+- `2026-04-27T01:15:40+00:00` — lazy compile: 091160 (7 sections)
+- `2026-04-27T01:15:41+00:00` — lazy compile: 305540 (7 sections)
+- `2026-04-27T01:15:41+00:00` — lazy compile: 360750 (7 sections)
+- `2026-04-27T01:15:41+00:00` — lazy compile: 379810 (7 sections)
+- `2026-04-27T01:17:38+00:00` — eager pipeline: eager=5, compiled=5, sections=35, embeds=35
+- `2026-04-27T01:17:38+00:00` — lazy compile: 004090 (7 sections)
+- `2026-04-27T01:17:38+00:00` — lazy compile: 005940 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 010170 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 012510 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 035900 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 069500 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 091160 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 305540 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 360750 (7 sections)
+- `2026-04-27T01:17:39+00:00` — lazy compile: 379810 (7 sections)
+- `2026-04-27T02:05:36+00:00` — lazy compile: 005930 (7 sections)
+- `2026-04-27T02:05:36+00:00` — lazy compile: 005930 (7 sections)
+- `2026-04-27T02:05:36+00:00` — lazy compile: 005930 (7 sections)
+- `2026-04-27T02:05:36+00:00` — lazy compile: 073570 (7 sections)
+- `2026-04-27T02:09:06+00:00` — lazy compile: 010170 (7 sections)
+- `2026-04-27T02:09:06+00:00` — lazy compile: 010170 (7 sections)

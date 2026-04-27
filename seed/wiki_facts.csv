@@ -1,0 +1,151 @@
+ticker,section_type,claim_text,confidence,source_label,source_url
+005930,profile,삼성전자는 메모리 반도체(DRAM/NAND/HBM)·시스템LSI·파운드리·MX(스마트폰)·VD/DA(가전)·디스플레이를 영위하는 한국 대표 IT 기업이다.,0.97,Curated,
+005930,profile,"전사 매출은 반도체(DS) 부문과 디바이스 경험(DX) 부문으로 양분되며, 수익성은 메모리 사이클에 가장 크게 좌우된다.",0.95,Curated,
+005930,business,"DS 부문은 DRAM(DDR5·LPDDR5X·HBM3E·HBM4), NAND, SSD를 양산하고 시스템LSI는 모바일 AP·이미지센서, 파운드리는 3nm GAA 공정을 운영한다.",0.93,Curated,
+005930,business,"DX 부문은 갤럭시 S/Z 시리즈 스마트폰(MX), QLED·OLED TV, 생활가전(VD/DA)을 포함하며 글로벌 판매망이 매출 변동성을 흡수한다.",0.9,Curated,
+005930,business,HBM 주요 고객은 엔비디아·AMD 등 AI 가속기 업체이며 HBM3E 12단·HBM4 양산 진입 시점이 점유율 회복의 분수령이다.,0.9,Curated,
+005930,finance,"2025년 연결 매출은 333.6조원, 영업이익은 43.6조원, 순이익은 45.2조원이다.",0.99,Samsung 2025 4Q IR,https://images.samsung.com/kdp/ir/events/2025/2025_4Q_conference_kor.pdf
+005930,finance,"2025년 4분기 매출은 76.3조원, 영업이익은 2.9조원이다.",0.95,Samsung 2025 4Q IR,https://images.samsung.com/kdp/ir/events/2025/2025_4Q_conference_kor.pdf
+005930,finance,2025년 연구개발비는 37.7조원으로 연간 최대 수준이다.,0.95,Samsung Newsroom,https://news.samsung.com/kr/%ec%82%bc%ec%84%b1%ec%a0%84%ec%9e%90-2025%eb%85%84-4%eb%b6%84%ea%b8%b0-%ec%8b%a4%ec%a0%81-%eb%b0%9c%ed%91%9c
+005930,finance,DS(반도체) 부문은 메모리 사이클 회복과 HBM 점유율 변화가 영업이익 변동성의 핵심 동인이다.,0.88,Curated,
+005930,finance,"환율(USD/KRW), DRAM·NAND 고정거래가, 스마트폰 출하 단가가 분기 이익 민감도 변수로 거론된다.",0.85,Curated,
+005930,relations,"메모리 경쟁사로 SK하이닉스·마이크론, 파운드리 경쟁사로 TSMC가 거론되며 HBM 핵심 고객은 엔비디아다.",0.92,Curated,
+005930,relations,"패키징·후공정에서 한미반도체·하나마이크론, 장비에서 ASML·램리서치·어플라이드머티리얼즈가 주요 파트너다.",0.85,Curated,
+005930,theme,"삼성전자는 반도체, HBM, 파운드리, AI 가속기, 메모리 사이클, 스마트폰, 디스플레이 테마에 묶인다.",0.93,Curated,
+000660,profile,"SK하이닉스는 DRAM·NAND·HBM을 중심으로 한 메모리 반도체 전문 기업으로, 글로벌 HBM 1위 점유율을 보유한다.",0.96,Curated,
+000660,profile,"AI 가속기향 HBM3E 12단 공급과 HBM4 양산 일정이 실적 가시성의 핵심이며, NAND는 Solidigm을 통해 기업용 SSD 라인업을 강화한다.",0.92,Curated,
+000660,business,"제품 포트폴리오는 DRAM(DDR5·LPDDR5X·HBM3E·HBM4)과 NAND·SSD(자회사 Solidigm 포함)로 구성되며, HBM은 엔비디아·AMD·구글 등 AI 가속기 고객에게 공급된다.",0.93,Curated,
+000660,business,청주·이천 D램·낸드 라인을 운영하며 미국 인디애나주에 첨단 패키징(HBM 후공정) 거점을 신설 중이다.,0.88,Curated,
+000660,finance,"2025년 연결 매출은 97조1,467억원, 영업이익은 47조2,063억원, 순이익은 42조9,479억원이다.",0.99,SK hynix 2025 4Q,https://news.skhynix.co.kr/sk-hynix-2025-fourth-quarter-earnings-results/
+000660,finance,2025년 영업이익률은 약 48.6%로 HBM과 고부가 DRAM 믹스 개선 영향이 크다.,0.95,SK hynix 2025 4Q,https://news.skhynix.co.kr/sk-hynix-2025-fourth-quarter-earnings-results/
+000660,finance,"2025년 4분기 매출은 32조8,267억원, 영업이익은 19조1,696억원, 순이익은 15조2,460억원이다.",0.95,SK hynix 2025 4Q,https://news.skhynix.co.kr/sk-hynix-2025-fourth-quarter-earnings-results/
+000660,finance,HBM 비중 확대로 메모리 ASP가 상승했고 2025년 EBITDA 마진은 50%대로 추정된다.,0.85,Curated,
+000660,finance,"리스크 변수는 NAND 가격 변동, AI 자본지출(capex) 사이클 둔화, 환율(USD/KRW), 미국 반도체 통상정책이다.",0.83,Curated,
+000660,relations,"메모리 경쟁사는 삼성전자·마이크론, 핵심 고객은 엔비디아·AMD, 후공정 파트너는 한미반도체·앰코·ASE다.",0.9,Curated,
+000660,relations,자회사 Solidigm은 기업용 SSD를 담당하며 NAND 사업의 가시성에 기여한다.,0.86,Curated,
+000660,theme,"SK하이닉스는 반도체, HBM, AI 가속기, DRAM, NAND, 메모리 사이클, AI 데이터센터 테마에 묶인다.",0.93,Curated,
+005940,profile,NH투자증권은 농협금융지주 산하 종합증권사로 리테일 브로커리지·IB·자산관리·자기매매(트레이딩)를 영위한다.,0.95,Curated,
+005940,profile,NH의 광범위한 영업망과 디지털 채널(나무증권·QV)을 결합한 하이브리드 모델이 경쟁 차별점이다.,0.9,Curated,
+005940,business,"수익원은 위탁수수료(브로커리지), IB(IPO·회사채·M&A 자문), WM(자산관리), 운용·트레이딩 손익으로 구분된다.",0.92,Curated,
+005940,business,AI Agent 기반 시황 자동화·리서치 보조·고객 대응 자동화로 디지털 채널 효율화를 추진하고 있다.,0.85,Curated,
+005940,finance,"2025년 연결 영업이익은 1조4,206억원, 당기순이익은 1조315억원으로 전년 대비 각각 57.7%, 50.2% 증가했다.",0.98,NHIS 2025 result,https://finance.daum.net/news/20260203140000375
+005940,finance,"2025년 4분기 영업수익은 6조4,077억원, 영업이익은 4,183억원, 당기순이익은 2,965억원이다.",0.95,Hankyung 2026-02-03,https://plus.hankyung.com/apps/newsinside.view?aid=202602034715h&category=&sns=y
+005940,finance,2025년 순이익 1조원대 회복으로 브로커리지·IB·운용 손익 기여가 모두 중요해졌다.,0.88,NHIS 2025 result,https://finance.daum.net/news/20260203140000375
+005940,finance,"이익 변동성 변수는 거래대금(시장 회전율), IPO·DCM 딜 파이프라인, 채권·트레이딩 손익, 충당금이다.",0.85,Curated,
+005940,relations,국내 경쟁사는 미래에셋증권·한국투자증권·삼성증권·KB증권이며 모회사는 농협금융지주(NH금융)다.,0.9,Curated,
+005940,theme,"NH투자증권은 증권, 금융주, AI Agent, IB·IPO 회복, 거래대금 사이클 테마에 묶인다.",0.9,Curated,
+068270,profile,셀트리온은 항체 바이오시밀러(램시마·트룩시마·허쥬마·유플라이마·짐펜트라·옴리클로·스테키마)와 신약 개발을 영위하는 글로벌 바이오 기업이다.,0.96,Curated,
+068270,profile,"미국·유럽 주요 시장에서 짐펜트라(피하주사형 인플릭시맙), 스테키마(스텔라라 바이오시밀러)의 처방 확대가 매출 성장 동력이다.",0.92,Curated,
+068270,business,"바이오시밀러 7종 글로벌 판매가 핵심이며, 셀트리온헬스케어·셀트리온제약과의 합병 후 일원화된 생산·판매 구조를 갖췄다.",0.9,Curated,
+068270,business,"송도 제1·2공장과 미국 위탁생산(CMO) 네트워크를 통해 항체 의약품을 공급하며, 신약 파이프라인은 항체-약물 접합체(ADC)·이중항체로 확장 중이다.",0.85,Curated,
+068270,finance,"2025년 연결 매출은 4조1,625억원, 영업이익은 1조1,685억원으로 전년 대비 각각 19.5%, 85.4% 증가했다.",0.98,Health Chosun 2026-01-23,https://m.health.chosun.com/svc/news_view.html?contid=2026012301328
+068270,finance,2025년 순이익은 1조315억원으로 영업이익 1조원 돌파와 함께 수익성이 개선됐다.,0.93,Easy Brief 2026-01-23,https://easybrief.co.kr/news/1193570
+068270,finance,"2025년 4분기 매출은 1조3,302억원, 영업이익은 4,752억원이다.",0.95,Health Chosun 2026-01-23,https://m.health.chosun.com/svc/news_view.html?contid=2026012301328
+068270,finance,"리스크 변수는 환율(USD/EUR), 바이오시밀러 가격 경쟁, 신규 적응증 임상 결과, 특허·소송 일정이다.",0.85,Curated,
+068270,relations,바이오시밀러 경쟁사는 산도즈·암젠·바이오젠·삼성바이오에피스이며 글로벌 파트너로 화이자·테바·휴마나가 거론된다.,0.88,Curated,
+068270,theme,"셀트리온은 바이오, 바이오시밀러, 항체의약품, 짐펜트라, 스테키마, ADC 신약, K-바이오 테마에 묶인다.",0.93,Curated,
+032820,profile,우리기술은 발전소 제어시스템(DCS)·원전 안전계통·산업자동화 솔루션을 공급하는 전기·전자 자동화 기업이다.,0.94,Curated,
+032820,profile,한수원·한전기술 등과 협력해 SMR(소형모듈원자로) 안전계통·국산 원전 후속기 사업에 참여한다.,0.88,Curated,
+032820,business,매출 구성은 원전 제어계통·발전소 DCS·산업자동화 SI로 나뉘며 SMR 표준설계(i-SMR) 관련 시제 프로젝트가 신규 동력이다.,0.88,Curated,
+032820,business,단기 실적은 프로젝트 수주·납기 일정에 좌우되고 원가 부담·납품 지연이 분기별 이익 변동성을 키운다.,0.83,Curated,
+032820,finance,"2025년 매출액은 871.35억원, 영업손실은 54.87억원, 당기순손실은 41.05억원이다.",0.96,FairValueResearch 032820,https://www.fairvalueresearch.co.kr/ko/stocks/032820
+032820,finance,"2025년 말 자산은 3,384.29억원, 부채는 2,140.61억원, 자본은 1,243.68억원이다.",0.94,FairValueResearch 032820,https://www.fairvalueresearch.co.kr/ko/stocks/032820
+032820,finance,2025년 수익성 악화는 일부 프로젝트 초기 원가 부담과 납기 일정 지연 영향으로 설명된다.,0.85,FairValueResearch 032820,https://www.fairvalueresearch.co.kr/ko/stocks/032820
+032820,finance,부채비율은 약 172%로 SMR 정책·수주 사이클 회복이 신용 지표 개선의 변수다.,0.8,Curated,
+032820,relations,산업 파트너는 한국수력원자력·한국전력기술이며 SMR 표준설계 컨소시엄에 참여한다.,0.85,Curated,
+032820,theme,"우리기술은 SMR, 원전, 원자력, 산업자동화, K-원전 수출, 발전소 DCS 테마에 묶인다.",0.92,Curated,
+073570,profile,리튬포어스는 정밀화학 기업에서 2차전지 소재(양극재 전구체·리튬화합물) 사업으로 피벗한 코스닥 종목이다.,0.94,Curated,
+073570,profile,본업 정밀화학(POSS·POEM 계면활성제 등) 위에 2차전지 소재 라인을 신규 구축하며 사업 모델 전환을 진행 중이다.,0.88,Curated,
+073570,business,"매출은 정밀화학(계면활성제·특수 화학소재)이 주력이고, 2차전지 소재(전구체·리튬 화합물·리튬티타네이트)는 신규 상업 라인이 단계적으로 가동된다.",0.88,Curated,
+073570,business,리튬·니켈·코발트 등 원재료 가격과 양극재 수요 사이클이 직접적인 매출 민감도 요인이다.,0.83,Curated,
+073570,finance,"2025년 매출은 107억원, 영업손실은 45억원, 순손실은 134억원이다.",0.96,AlphaSquare 073570,https://alphasquare.co.kr/home/stock-summary?code=073570
+073570,finance,"2025년 말 자산은 591억원, 부채는 33억원, 자본은 559억원으로 부채비율은 5.82%다.",0.93,AlphaSquare 073570,https://alphasquare.co.kr/home/stock-summary?code=073570
+073570,finance,"2025년 ROE는 -24.60%, PBR은 0.97배로 표시돼 실적 가시성보다 재무 안정성 확인이 먼저다.",0.9,AlphaSquare 073570,https://alphasquare.co.kr/home/stock-summary?code=073570
+073570,finance,실적 가시성은 2차전지 소재 신공장 가동률·고객 검증(Q-test) 통과 시점에 좌우된다.,0.78,Curated,
+073570,relations,리튬·전구체 밸류체인에서 LG에너지솔루션·삼성SDI·SK온·POSCO퓨처엠 등 셀·소재사가 잠재 고객으로 거론된다.,0.78,Curated,
+073570,theme,"리튬포어스는 2차전지, 리튬, 양극재, 전구체, 정밀화학, 친환경 소재 테마에 묶인다.",0.9,Curated,
+012510,profile,더존비즈온은 ERP·전자세금계산서·그룹웨어를 공급하는 국내 대표 B2B SaaS 기업이다.,0.95,Curated,
+012510,profile,WEHAGO 플랫폼·옴니에이전트(AI)·AmaranthOne(클라우드 ERP)으로 SaaS 전환을 가속해 매출의 클라우드 비중이 빠르게 상승하고 있다.,0.9,Curated,
+012510,business,"제품군은 ERP(중견·중소·전문가용), 전자세금계산서(세무·회계 SaaS), 그룹웨어, AI Agent(옴니에이전트), 보안·클라우드 인프라로 구성된다.",0.92,Curated,
+012510,business,"AI 코파일럿·자동화 기능 강화는 ARPU와 갱신율 상승의 핵심 동인이며, 클라우드 ERP 전환이 매출 안정성을 끌어올린다.",0.88,Curated,
+012510,finance,"2025년 매출은 4,463억원, 영업이익은 1,277억원, 순이익은 984억원이다.",0.98,BusinessPost 2026-02-26,https://www.businesspost.co.kr/BP?command=article_view&num=386554
+012510,finance,"2025년 4분기 매출은 1,271억원, 영업이익은 461억원, 순이익은 454억원이다.",0.95,Hankyung 2026-01-27,https://www.hankyung.com/article/202601278703O
+012510,finance,2025년 4분기 영업이익률은 약 36.3%로 AI·클라우드 중심 고마진 매출 확대가 핵심 변수다.,0.9,Hankyung 2026-01-27,https://www.hankyung.com/article/202601278703O
+012510,finance,클라우드·SaaS 매출 비중이 ARR(연간반복매출) 가시성을 높여 멀티플 리레이팅 요인으로 거론된다.,0.85,Curated,
+012510,relations,"국내 ERP 경쟁사는 영림원소프트랩·이지스, 글로벌은 SAP·오라클이며 클라우드 인프라는 NAVER 클라우드·AWS와 협력한다.",0.85,Curated,
+012510,theme,"더존비즈온은 SaaS, 클라우드, ERP, AI Agent, 코파일럿, B2B 소프트웨어 테마에 묶인다.",0.92,Curated,
+010170,profile,대한광통신은 광섬유와 광케이블을 제조하는 통신 인프라 기업이다.,0.95,Curated,
+010170,profile,AI 데이터센터·5G·전력망 인프라 투자 확대 국면에서 광케이블 공급사 중 하나로 거론된다.,0.88,Curated,
+010170,business,"주요 매출은 광섬유·광케이블·통신용 케이블이며 통신사업자, 데이터센터, 전력망(스마트그리드) 투자 수요에 민감하다.",0.9,Curated,
+010170,business,"국내 통신 3사 발주, 해외 통신사 수출, 데이터센터 백본 망 수요가 분기별 매출 변동을 결정한다.",0.85,Curated,
+010170,latest_events,AI 데이터센터와 통신망 투자 확대 국면에서 광케이블 수혜주로 함께 거론된다.,0.86,Curated,
+010170,finance,"2025년 분기 합산 매출은 약 2,497억원, 영업손실은 약 378억원, 순손실은 약 443억원이다.",0.86,Greenwood 010170,https://en.greenwood.co.kr/stocks/010170/financials/quarterly-sales
+010170,finance,"수익성은 광섬유 prefom 가격, 데이터센터 capex 사이클, 환율(USD/KRW)에 좌우된다.",0.78,Curated,
+010170,relations,"광섬유·광케이블 밸류체인에서 통신사(KT·SKT·LGU+), 데이터센터(NHN·NAVER·KT), 전력망(한전) 투자와 연결된다.",0.85,Curated,
+010170,theme,"대한광통신은 AI 데이터센터, 광케이블, 5G·통신망 투자, 스마트그리드 테마에 묶인다.",0.9,Curated,
+035900,profile,"JYP Ent.는 아티스트 IP를 기반으로 음반·음원, 공연, MD·라이선스 매출을 창출하는 엔터테인먼트 기업이다.",0.95,Curated,
+035900,profile,스트레이 키즈·트와이스·NMIXX·ITZY·니쥬 등 다국적 아티스트 IP를 운영하며 일본·미국 시장 비중이 높다.,0.9,Curated,
+035900,business,"주요 수익원은 스트레이 키즈·트와이스 등 아티스트 활동에 따른 앨범, 공연, 콘텐츠, 굿즈 매출이다.",0.92,Curated,
+035900,business,"공연(월드투어·돔 투어) 매출과 일본 자회사(JYP재팬)의 활동, 신규 아티스트(VCHA 등) 데뷔 흥행이 단기 실적 변수다.",0.88,Curated,
+035900,latest_events,"월드투어 일정, 일본·미국 활동 확대, 신규 아티스트 흥행이 단기 실적 변수다.",0.86,Curated,
+035900,finance,"2025년 분기 합산 매출은 약 8,219억원, 영업이익은 약 1,552억원, 순이익은 약 1,606억원이다.",0.88,AwakePlus 035900,https://en.awakeplus.co.kr/stocks/035900/financials/quarterly-sales
+035900,finance,영업이익률은 18~19% 수준으로 추정되며 공연(고마진)·MD 비중 확대가 마진 변수다.,0.82,Curated,
+035900,finance,"리스크 요인은 환율(JPY/USD), 아티스트 활동 공백, 군 입대 일정, 일본·미주 콘서트 수요 둔화다.",0.8,Curated,
+035900,relations,"공연장(K-아레나·돔), 플랫폼(YouTube·Weverse·UNIVERSE), 음반·음원 유통사(드림어스·카카오엔터), MD 제작사가 주요 밸류체인 파트너다.",0.85,Curated,
+035900,theme,"JYP Ent.는 K-Pop, 엔터테인먼트, 월드투어, IP 콘텐츠, 일본 시장, 글로벌 팬덤 테마에 묶인다.",0.9,Curated,
+004090,profile,"한국석유공업은 아스팔트, 합성수지, 석유화학 제품을 다루는 소재 기업이다.",0.95,Curated,
+004090,profile,아스팔트 매출은 도로포장 인프라 발주에 직접적으로 연동되며 합성수지·방수재는 건설·산업 수요에 민감하다.,0.9,Curated,
+004090,business,도로포장용 아스팔트와 방수·건축자재 수요가 실적에 영향을 준다.,0.9,Curated,
+004090,business,연계된 원재료는 국제유가·정제 마진이며 SOC 예산 확대 국면에서 아스팔트 관련주로 분류된다.,0.85,Curated,
+004090,latest_events,SOC와 도로 인프라 예산 확대가 거론될 때 아스팔트 관련주로 주목받는다.,0.86,Curated,
+004090,finance,"2025년 분기 합산 매출은 약 6,969억원, 영업이익은 약 118억원, 순이익은 약 51억원이다.",0.88,AwakePlus 004090,https://en.awakeplus.co.kr/stocks/004090/financials/quarterly-sales
+004090,finance,영업이익률은 1~2% 수준으로 낮아 매출보다는 원가(국제유가·환율) 변동에 마진이 크게 흔들린다.,0.82,Curated,
+004090,finance,"실적 변수는 두바이유 가격, USD/KRW 환율, SOC·도로 발주 일정, 합성수지 수요 사이클이다.",0.85,Curated,
+004090,relations,"실적은 국제유가, 정제·석유화학 원가, 도로·건설 경기와 연결된다.",0.85,Curated,
+004090,theme,"한국석유는 SOC, 아스팔트, 유가, 도로 인프라, 석유화학 테마에 묶인다.",0.9,Curated,
+069500,profile,KODEX 200은 코스피 200 지수의 일간 변동률을 추종하는 국내 대표 주식형 ETF다.,0.98,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,profile,운용사는 삼성자산운용이며 코스피 시장의 시가총액 상위 200개 종목에 분산 노출한다.,0.96,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,business,삼성자산운용이 운용하며 코스피 시장 중대형주 200개 종목에 분산 노출한다.,0.95,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,business,"분배금은 매년 지급되며, 운용 방식은 완전복제(Full Replication)에 가깝게 코스피200 구성을 따른다.",0.9,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,finance,"K-ETF 기준 총보수는 연 0.150%, 상장일은 2002-10-14, 시가총액은 21조5,214억원 수준이다.",0.96,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,finance,기초지수(코스피200)의 일간 수익률을 추종하며 추적오차(Tracking Error)는 통상 0.1%p 내외로 관리된다.,0.85,Curated,
+069500,relations,"주요 구성종목은 삼성전자(약 30%), SK하이닉스(약 9%), LG에너지솔루션(약 4%), 셀트리온(약 2%), 현대차·기아·NAVER 등 코스피200의 200개 종목이다.",0.92,Curated,https://www.k-etf.com/etf/069500
+069500,relations,"삼성전자, SK하이닉스 등 코스피 대형주 비중 변화가 ETF 성과에 큰 영향을 준다.",0.86,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,theme,"KODEX 200은 국내 대형주, 코스피200, 시장대표 지수, 베타1 ETF 테마에 해당한다.",0.92,K-ETF 069500,https://www.k-etf.com/etf/069500
+069500,theme,삼성전자·SK하이닉스 비중이 30% 이상이라 반도체 사이클이 ETF 수익률에 큰 영향을 준다.,0.88,Curated,
+360750,profile,TIGER 미국S&P500은 S&P 500 지수의 일간 변동률을 추종하는 해외주식형 ETF다.,0.98,K-ETF 360750,https://www.k-etf.com/etf/360750
+360750,profile,운용사는 미래에셋자산운용이며 미국 대표 대형주 500개에 분산 투자하는 효과를 제공한다.,0.96,K-ETF 360750,https://www.k-etf.com/etf/360750
+360750,business,미래에셋자산운용이 운용하며 미국 대표 대형주 500개에 분산 투자하는 효과를 제공한다.,0.95,K-ETF 360750,https://www.k-etf.com/etf/360750
+360750,business,"환헤지(H) 미적용 형태로 원/달러 환율 변동이 수익률에 직접 반영되며, 일부 시리즈는 환헤지(360750H) 등도 존재한다.",0.88,Curated,
+360750,finance,"K-ETF 기준 총보수는 연 0.0068%, 상장일은 2020-08-07, 시가총액은 15조7,976억원 수준이다.",0.96,K-ETF 360750,https://www.k-etf.com/etf/360750
+360750,finance,분배금은 분기 또는 연 단위로 지급되며 추적오차는 0.1%p 내외로 관리된다.,0.83,Curated,
+360750,relations,"주요 구성종목(상위)은 애플(Apple), 마이크로소프트(MSFT), 엔비디아(NVDA), 알파벳(GOOG), 아마존(AMZN), 메타(META), 버크셔해서웨이, 일라이릴리, JP모건, 브로드컴 등으로 미국 시가총액 상위 500개 기업이다.",0.92,Curated,https://www.k-etf.com/etf/360750
+360750,relations,"애플, 마이크로소프트, 엔비디아 등 미국 대형주와 원/달러 환율 변화가 성과에 영향을 준다.",0.86,K-ETF 360750,https://www.k-etf.com/etf/360750
+360750,theme,"TIGER 미국S&P500은 미국 대형주, S&P500, 해외주식 ETF, 환노출, 미국 빅테크 테마에 해당한다.",0.92,K-ETF 360750,https://www.k-etf.com/etf/360750
+379810,profile,KODEX 미국나스닥100TR은 NASDAQ-100 Total Return Index를 기초지수로 하는 해외주식형 ETF다.,0.98,K-ETF 379810,https://www.k-etf.com/etf/379810
+379810,profile,TR(Total Return) 구조라 분배금이 자동 재투자돼 장기 복리 효과를 노리는 투자자에게 선호된다.,0.92,Curated,
+379810,business,삼성자산운용이 운용하며 나스닥 상장 비금융 대형 기술주 중심으로 분산 투자한다.,0.95,K-ETF 379810,https://www.k-etf.com/etf/379810
+379810,business,환헤지(H) 미적용으로 원/달러 환율 변동이 수익률에 직접 반영된다.,0.85,Curated,
+379810,finance,"K-ETF 기준 총보수는 연 0.0062%, 상장일은 2021-04-09, 시가총액은 6조3,769억원 수준이다.",0.96,K-ETF 379810,https://www.k-etf.com/etf/379810
+379810,finance,TR 지수 추종으로 분배금이 자동 재투자되며 분배금 미지급(0%) 구조가 일반적이다.,0.85,Curated,
+379810,relations,"주요 구성종목은 애플(Apple), 마이크로소프트(MSFT), 엔비디아(NVDA), 아마존(AMZN), 알파벳(GOOG), 메타(META), 브로드컴(AVGO), 테슬라(TSLA), 코스트코, 어도비 등 나스닥100 비금융 대형 기술주다.",0.92,Curated,https://www.k-etf.com/etf/379810
+379810,relations,"엔비디아, 애플, 마이크로소프트 등 나스닥100 대형 기술주 비중과 원/달러 환율이 성과에 영향을 준다.",0.86,K-ETF 379810,https://www.k-etf.com/etf/379810
+379810,theme,"KODEX 미국나스닥100TR은 미국 빅테크, 나스닥100, TR 지수 ETF, AI 가속기 노출, 환노출 테마에 해당한다.",0.92,K-ETF 379810,https://www.k-etf.com/etf/379810
+091160,profile,KODEX 반도체는 KRX 반도체 지수를 기초지수로 하는 국내 반도체 섹터 ETF다.,0.97,K-ETF 091160,https://www.k-etf.com/etf/091160
+091160,profile,운용사는 삼성자산운용이며 국내 반도체 설계·제조·장비·소재·후공정 기업에 분산 노출한다.,0.95,Curated,
+091160,business,코스피·코스닥의 반도체 섹터(설계·메모리·파운드리·장비·소재·후공정) 종목으로 구성된 KRX 반도체 지수를 추종한다.,0.92,Curated,
+091160,business,"섹터 집중형 ETF라 변동성이 KOSPI200 등 시장지수보다 높고, 메모리 사이클·HBM 모멘텀에 민감하다.",0.88,Curated,
+091160,finance,"K-ETF 기준 총보수는 연 0.45% 수준, 상장일은 2006-06-27이며 시가총액은 약 1조원대로 거론된다.",0.85,Curated,https://www.k-etf.com/etf/091160
+091160,finance,분배금은 연 단위 또는 미지급(재투자)으로 운영되며 추적오차는 통상 0.2~0.3%p 수준이다.,0.78,Curated,
+091160,relations,"주요 구성종목은 SK하이닉스, 삼성전자, 한미반도체, 리노공업, 동진세미켐, ISC, 원익IPS, 솔브레인, DB하이텍, HPSP 등 국내 반도체 밸류체인 종목이다.",0.9,Curated,https://www.k-etf.com/etf/091160
+091160,relations,메모리(삼성전자·SK하이닉스) 비중이 크며 후공정·장비주의 모멘텀이 단기 성과에 영향을 준다.,0.85,Curated,
+091160,theme,"KODEX 반도체는 반도체, HBM, AI 가속기, 메모리 사이클, KRX 반도체 지수, 섹터ETF 테마에 해당한다.",0.92,Curated,
+305540,profile,TIGER 2차전지테마는 국내 2차전지(배터리·소재·장비) 밸류체인 기업으로 구성된 테마형 ETF다.,0.97,K-ETF 305540,https://www.k-etf.com/etf/305540
+305540,profile,운용사는 미래에셋자산운용이며 셀·양극재·전구체·전해질·분리막·장비·리튬 등 2차전지 핵심 영역에 분산 노출한다.,0.95,Curated,
+305540,business,2차전지 밸류체인(셀·양극재·음극재·분리막·전해액·장비·리튬·니켈) 종목으로 구성된 WISE 2차전지 지수를 추종한다.,0.92,Curated,
+305540,business,테마형 ETF라 글로벌 EV 수요·미국 IRA 정책·중국 공급망 변동성에 민감하며 KOSPI200 대비 변동성이 높다.,0.88,Curated,
+305540,finance,"K-ETF 기준 총보수는 연 0.50% 수준, 상장일은 2018-09-12이며 시가총액은 약 1조원 안팎으로 거론된다.",0.85,Curated,https://www.k-etf.com/etf/305540
+305540,finance,분배금은 연 단위 또는 미지급(재투자)으로 운영되며 EV 사이클 둔화 시 큰 폭의 가격 변동성을 보인다.,0.8,Curated,
+305540,relations,"주요 구성종목은 LG에너지솔루션, POSCO퓨처엠, 삼성SDI, SK이노베이션, 에코프로, 에코프로비엠, 엘앤에프, 포스코홀딩스, 코스모신소재, 일진머티리얼즈, 리튬포어스 등 국내 2차전지 밸류체인 종목이다.",0.92,Curated,https://www.k-etf.com/etf/305540
+305540,relations,셀(LG엔솔·삼성SDI·SK온) 비중이 크고 양극재·전구체 종목 모멘텀이 ETF 성과의 또 다른 축이다.,0.85,Curated,
+305540,theme,"TIGER 2차전지테마는 2차전지, 배터리, 양극재, EV, 리튬, K-배터리, IRA, 섹터ETF 테마에 해당한다.",0.92,Curated,

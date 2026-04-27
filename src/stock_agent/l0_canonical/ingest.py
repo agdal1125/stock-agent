@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -26,7 +27,11 @@ def _checksum(text: str) -> str:
 
 
 def _source_id(path: Path) -> str:
-    return hashlib.sha1(str(path).encode("utf-8")).hexdigest()[:16]
+    try:
+        key = str(path.resolve().relative_to(CFG.data_dir.resolve()))
+    except ValueError:
+        key = str(path.resolve())
+    return hashlib.sha1(key.replace("\\", "/").encode("utf-8")).hexdigest()[:16]
 
 
 def _impact_heuristic(text: str, source_type: str) -> float:
@@ -50,28 +55,40 @@ def _impact_heuristic(text: str, source_type: str) -> float:
 
 
 def upsert_ticker_master() -> int:
+    # ticker_master 가 바뀌면 section_builder 의 alias 캐시도 무효화
+    from ..l1_index.section_builder import reset_alias_cache
+    reset_alias_cache()
+
     n = 0
     with tx() as conn:
         with (CFG.seed_dir / "tickers.csv").open(encoding="utf-8") as f:
             for row in csv.DictReader(f):
+                aliases = [a.strip() for a in row["aliases"].split("|") if a.strip()]
+                asset_type = (row.get("asset_type") or "stock").strip().lower()
+                if asset_type not in {"stock", "etf"}:
+                    asset_type = "stock"
                 conn.execute(
                     """
-                    INSERT INTO ticker_master(ticker, name_ko, name_en, aliases_json, market, sector, is_preferred)
-                    VALUES(?,?,?,?,?,?,?)
+                    INSERT INTO ticker_master
+                    (ticker, name_ko, name_en, aliases_json, market, sector, asset_type, is_preferred)
+                    VALUES(?,?,?,?,?,?,?,?)
                     ON CONFLICT(ticker) DO UPDATE SET
                         name_ko=excluded.name_ko,
                         name_en=excluded.name_en,
                         aliases_json=excluded.aliases_json,
                         market=excluded.market,
-                        sector=excluded.sector
+                        sector=excluded.sector,
+                        asset_type=excluded.asset_type,
+                        is_preferred=excluded.is_preferred
                     """,
                     (
                         row["ticker"],
                         row["name_ko"],
                         row.get("name_en") or None,
-                        '["' + '","'.join(a.strip() for a in row["aliases"].split("|") if a.strip()) + '"]',
+                        json.dumps(aliases, ensure_ascii=False),
                         row["market"],
                         row["sector"],
+                        asset_type,
                         int(row.get("is_preferred", 0)),
                     ),
                 )
@@ -126,22 +143,38 @@ def ingest_raw() -> tuple[int, int]:
 
             # news/disclosure/sns는 모두 timeline 이벤트로 기록 (profile은 claim 입력만)
             if source_type in ("news", "disclosure", "sns") and ticker:
-                conn.execute(
-                    """
-                    INSERT INTO stock_event_timeline
-                    (ticker, event_type, occurred_at, headline, summary, source_id, impact_score)
-                    VALUES(?,?,?,?,?,?,?)
-                    """,
-                    (
-                        ticker,
-                        source_type,
-                        published_at,
-                        fm.get("title", ""),
-                        body[:500],
-                        sid,
-                        _impact_heuristic(body, source_type),
-                    ),
+                event_payload = (
+                    ticker,
+                    source_type,
+                    published_at or ingested_at,
+                    fm.get("title", ""),
+                    body[:500],
+                    _impact_heuristic(body, source_type),
+                    sid,
                 )
+                existing_evt = conn.execute(
+                    "SELECT event_id FROM stock_event_timeline WHERE source_id=?",
+                    (sid,),
+                ).fetchone()
+                if existing_evt:
+                    conn.execute(
+                        """
+                        UPDATE stock_event_timeline
+                        SET ticker=?, event_type=?, occurred_at=?, headline=?,
+                            summary=?, impact_score=?
+                        WHERE source_id=?
+                        """,
+                        event_payload,
+                    )
+                else:
+                    conn.execute(
+                        """
+                        INSERT INTO stock_event_timeline
+                        (ticker, event_type, occurred_at, headline, summary, impact_score, source_id)
+                        VALUES(?,?,?,?,?,?,?)
+                        """,
+                        event_payload,
+                    )
                 evt_n += 1
                 touched.add(ticker)
 

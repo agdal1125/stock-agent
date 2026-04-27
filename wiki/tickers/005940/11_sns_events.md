@@ -4,7 +4,7 @@ ticker: "005940"
 section_type: sns_events
 name_ko: "NH투자증권"
 tags: [SNS, sns_events, 증권]
-updated_at: "2026-04-24T04:46:11+00:00"
+updated_at: "2026-04-27T01:17:38+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

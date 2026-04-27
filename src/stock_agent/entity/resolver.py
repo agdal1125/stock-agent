@@ -27,6 +27,7 @@ class Ticker:
     aliases: tuple[str, ...]
     market: str
     sector: str
+    asset_type: str = "stock"
 
 
 @dataclass(frozen=True)
@@ -51,6 +52,7 @@ def _load_master() -> list[Ticker]:
                     aliases=aliases,
                     market=row["market"],
                     sector=row["sector"],
+                    asset_type=(row.get("asset_type") or "stock").strip().lower(),
                 )
             )
     return out

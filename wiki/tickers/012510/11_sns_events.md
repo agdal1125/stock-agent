@@ -4,7 +4,7 @@ ticker: "012510"
 section_type: sns_events
 name_ko: "더존비즈온"
 tags: [SNS, sns_events, 소프트웨어]
-updated_at: "2026-04-24T04:46:01+00:00"
+updated_at: "2026-04-27T01:17:39+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

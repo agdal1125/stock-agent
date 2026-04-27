@@ -14,11 +14,14 @@
 from __future__ import annotations
 
 import json as _json
+import csv
 import re
 from datetime import datetime, timezone
+from functools import lru_cache
 
 from jinja2 import Template
 
+from ..config import CFG
 from ..db import tx
 from .wiki_loader import (
     WIKI_ROOT, hash_body, relpath_from_data, ticker_dir, wiki_root,
@@ -30,6 +33,9 @@ from .wiki_loader import (
 # 섹터명 자체는 tag로 그대로 사용 (ticker_master.sector).
 # 아래는 claim 본문에서 감지할 도메인 키워드 → 태그 매핑.
 KEYWORD_TAGS: dict[str, str] = {
+    # 반도체 / 메모리
+    "반도체": "반도체",
+    "메모리": "메모리",
     "HBM": "HBM",
     "HBM4": "HBM",
     "HBM3": "HBM",
@@ -39,41 +45,96 @@ KEYWORD_TAGS: dict[str, str] = {
     "파운드리": "파운드리",
     "3nm": "3nm",
     "GAA": "GAA",
+    "후공정": "후공정",
+    "패키징": "후공정",
+    "AI 가속기": "AI가속기",
+    # 바이오
     "바이오시밀러": "바이오시밀러",
     "스텔라라": "바이오시밀러",
+    "스테키마": "바이오시밀러",
+    "짐펜트라": "바이오시밀러",
     "임상": "임상",
+    "ADC": "ADC",
+    "이중항체": "이중항체",
+    # 원전
     "SMR": "SMR",
     "원자력": "원자력",
     "원전": "원자력",
+    # 소프트웨어
     "SaaS": "SaaS",
     "클라우드": "클라우드",
     "ERP": "ERP",
+    "AI Agent": "AI Agent",
+    "AI에이전트": "AI Agent",
+    "옴니에이전트": "AI Agent",
+    "코파일럿": "AI Agent",
+    # 시장 신호
     "특징주": "특징주",
     "급등": "급등락",
     "급락": "급등락",
     "배당": "배당",
     "자기주식": "자사주",
     "자사주": "자사주",
+    # 2차전지
     "리튬": "2차전지",
     "2차전지": "2차전지",
+    "양극재": "양극재",
+    "전구체": "전구체",
+    "EV": "EV",
+    "IRA": "IRA",
+    "배터리": "2차전지",
+    # 통신·인프라
     "광케이블": "광케이블",
     "데이터센터": "데이터센터",
     "AI ": "AI",
+    "5G": "5G",
+    "스마트그리드": "스마트그리드",
+    # 엔터
     "K-Pop": "K-Pop",
     "월드투어": "K-Pop",
+    # 소재·에너지
     "아스팔트": "아스팔트",
     "SOC": "SOC",
     "유가": "유가",
+    # 공통 신호
     "공시": "공시",
     "실적": "실적",
     "환율": "환율",
     "수주": "수주",
+    # ETF / 지수
+    "ETF": "ETF",
+    "코스피": "코스피",
+    "KOSPI": "코스피",
+    "S&P": "S&P500",
+    "S&P500": "S&P500",
+    "나스닥": "나스닥100",
+    "NASDAQ": "나스닥100",
+    "대형주": "대형주",
+    "섹터ETF": "섹터ETF",
+    "TR": "TR지수",
 }
+
+
+_ALIAS_CACHE: list[tuple[str, str, str]] | None = None
+
+
+def reset_alias_cache() -> None:
+    """ticker_master 가 변경된 후 호출 (e.g. upsert_ticker_master 직후).
+
+    `_build_alias_map` 의 결과는 ticker_master 가 바뀌지 않으면 변하지 않으므로
+    프로세스 단위로 재사용한다. 한 bootstrap 실행에서 ticker N개를 컴파일할 때
+    같은 alias_map 을 재계산하는 비용을 제거한다.
+    """
+    global _ALIAS_CACHE
+    _ALIAS_CACHE = None
 
 
 def _build_alias_map(conn) -> list[tuple[str, str, str]]:
     """(alias, ticker, name_ko) 리스트를 길이 내림차순으로 반환.
     길이 순 정렬은 greedy 치환 시 'SK하이닉스'가 '하이닉스'보다 먼저 매치되도록."""
+    global _ALIAS_CACHE
+    if _ALIAS_CACHE is not None:
+        return _ALIAS_CACHE
     out: list[tuple[str, str, str]] = []
     rows = conn.execute("SELECT ticker, name_ko, aliases_json FROM ticker_master").fetchall()
     for r in rows:
@@ -86,6 +147,7 @@ def _build_alias_map(conn) -> list[tuple[str, str, str]]:
             seen.add(a)
             out.append((a, r["ticker"], r["name_ko"]))
     out.sort(key=lambda x: -len(x[0]))
+    _ALIAS_CACHE = out
     return out
 
 
@@ -162,13 +224,13 @@ section_type: {{ section_type }}
 name_ko: "{{ name_ko }}"
 tags: [{{ tags | join(', ') }}]
 updated_at: "{{ updated_at }}"
-source: "derived from L0 stock_claim (review_state=approved)"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
 # {{ name_ko }} ({{ ticker }}) — {{ section_type }}
 
 {% if claims %}
-{% for c in claims %}- {{ c.linked }}{% if c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
+{% for c in claims %}- {{ c.linked }}{% if c.source_url %}  _([{{ c.source_id }}]({{ c.source_url }}) · conf:{{ '%.2f' % c.confidence }})_{% elif c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
 {% endfor %}
 {% else %}
 _해당 섹션에 승인된 claim이 없습니다._
@@ -189,7 +251,7 @@ section_type: latest_events
 name_ko: "{{ name_ko }}"
 tags: [{{ tags | join(', ') }}]
 updated_at: "{{ updated_at }}"
-source: "derived from L0 stock_event_timeline (news + disclosure)"
+source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 
 # {{ name_ko }} ({{ ticker }}) — 최근 이슈 (뉴스·공시)
@@ -199,6 +261,13 @@ source: "derived from L0 stock_event_timeline (news + disclosure)"
 {% endfor %}
 {% else %}
 _최근 이벤트 없음._
+{% endif %}
+
+{% if claims %}
+
+## 핵심 정리
+{% for c in claims %}- {{ c.linked }}{% if c.source_url %}  _([{{ c.source_id }}]({{ c.source_url }}) · conf:{{ '%.2f' % c.confidence }})_{% elif c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
+{% endfor %}
 {% endif %}
 
 {% if related_tickers %}
@@ -243,25 +312,29 @@ section_type: finance
 name_ko: "{{ name_ko }}"
 tags: [{{ tags | join(', ') }}]
 updated_at: "{{ updated_at }}"
-source: "derived from L0 stock_claim (finance) + FnGuide external"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (finance)"
+{% if asset_type != "etf" %}
 external_refs:
   fnguide_finance: "https://comp.fnguide.com/SVO2/asp/SVD_Finance.asp?pGB=1&gicode=A{{ ticker }}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701"
+{% endif %}
 ---
 
-# {{ name_ko }} ({{ ticker }}) — 재무·실적·가이던스
+# {{ name_ko }} ({{ ticker }}) — {% if asset_type == "etf" %}ETF 지표·보수·기초지수{% else %}재무·실적·가이던스{% endif %}
 
+{% if asset_type != "etf" %}
 ## 외부 참조
 - 🔗 **FnGuide 재무제표**: [comp.fnguide.com · A{{ ticker }}](https://comp.fnguide.com/SVO2/asp/SVD_Finance.asp?pGB=1&gicode=A{{ ticker }}&cID=&MenuYn=Y&ReportGB=&NewMenuID=103&stkGb=701)
   _연결·별도 손익·재무상태·현금흐름 최신 요약 (외부 원천)_
+{% endif %}
 
 {% if claims %}
 
-## 주요 요약 (L0 claim)
-{% for c in claims %}- {{ c.linked }}{% if c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
+## 주요 수치 및 요약
+{% for c in claims %}- {{ c.linked }}{% if c.source_url %}  _([{{ c.source_id }}]({{ c.source_url }}) · conf:{{ '%.2f' % c.confidence }})_{% elif c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
 {% endfor %}
 {% else %}
 
-_추출된 finance claim이 아직 없습니다._
+_추출된 finance claim 또는 curated fact가 아직 없습니다._
 {% endif %}
 
 {% if related_tickers %}
@@ -279,7 +352,7 @@ section_type: theme
 name_ko: "{{ name_ko }}"
 tags: [{{ tags | join(', ') }}]
 updated_at: "{{ updated_at }}"
-source: "derived from L0 stock_claim (theme) + ticker_master"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 
 # {{ name_ko }} ({{ ticker }}) — 테마·업종·섹터
@@ -291,7 +364,7 @@ source: "derived from L0 stock_claim (theme) + ticker_master"
 {% if claims %}
 
 ## 주요 테마
-{% for c in claims %}- {{ c.linked }}{% if c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
+{% for c in claims %}- {{ c.linked }}{% if c.source_url %}  _([{{ c.source_id }}]({{ c.source_url }}) · conf:{{ '%.2f' % c.confidence }})_{% elif c.source_id %}  _(src:{{ c.source_id }} · conf:{{ '%.2f' % c.confidence }})_{% endif %}
 {% endfor %}
 {% else %}
 
@@ -354,7 +427,7 @@ updated_at: "{{ updated_at }}"
 
 # NH Stock-Agent — 전역 정책
 
-이 파일은 종목 Agent가 **모든 질의에서 공통적으로 따르는 규칙**을 정의합니다.
+이 파일은 종목·ETF Agent가 **모든 질의에서 공통적으로 따르는 규칙**을 정의합니다.
 Karpathy의 LLM Wiki 제안 중 `AGENTS.md` 개념을 차용했습니다.
 
 ## 답변 원칙
@@ -367,16 +440,16 @@ Karpathy의 LLM Wiki 제안 중 `AGENTS.md` 개념을 차용했습니다.
 
 | 섹션 | 내용 | 갱신 주기 |
 |---|---|---|
-| profile       | 종목 3줄 소개         | 일 1회 |
+| profile       | 종목·ETF 3줄 소개     | 일 1회 |
 | latest_events | 최근 이슈 (뉴스·공시) | 10~30분 |
 | sns_events    | SNS·종토방 이슈       | 15분 |
 | business      | 사업 개요·주요 상품    | 일 1회 |
-| finance       | 재무·실적·가이던스    | 일 1회 (외부 원천: FnGuide) |
+| finance       | 재무·실적·ETF 보수/순자산 | 일 1회 (외부 원천: FnGuide/K-ETF + curated facts) |
 | relations     | 연관 기업·Entity      | 일 1회 |
 | theme         | 테마·업종·섹터        | 일 1회 |
 
 ## 품질 게이트
-- 사람이 검수한 내용만 답변의 근거로 사용됩니다.
+- 사람이 검수한 claim과 `seed/wiki_facts.csv`의 curated fact만 답변의 근거로 사용됩니다.
 - 모든 LLM 호출은 감사 로그로 기록됩니다.
 - 비상 차단(`LLM_KILL_SWITCH`) 가 켜지면 외부 LLM 접근을 즉시 멈추고 미리 준비된 안내 응답으로 전환합니다.
 """.strip() + "\n")
@@ -390,9 +463,9 @@ updated_at: "{{ updated_at }}"
 
 현재 수집된 종목 목록입니다. 종목명을 클릭하면 해당 종목 페이지로 이동합니다.
 
-| ticker | 종목명 | 섹션 수 | 마지막 갱신 |
-|---|---|---|---|
-{% for r in rows %}| [{{ r.ticker }}]({{ r.ticker }}/) | {{ r.name_ko }} | {{ r.sec_n }} | {{ r.updated_at[:19] if r.updated_at else '-' }} |
+| type | ticker | 종목명 | 섹션 수 | 마지막 갱신 |
+|---|---|---|---|---|
+{% for r in rows %}| {{ r.asset_type }} | [{{ r.ticker }}]({{ r.base_dir }}/{{ r.ticker }}/) | {{ r.name_ko }} | {{ r.sec_n }} | {{ r.updated_at[:19] if r.updated_at else '-' }} |
 {% endfor %}
 
 > 전역 정책: [AGENTS.md](AGENTS.md) · 로그: [log.md](log.md)
@@ -403,12 +476,62 @@ updated_at: "{{ updated_at }}"
 
 def _fetch_ticker(conn, ticker: str) -> dict:
     r = conn.execute(
-        "SELECT ticker, name_ko, aliases_json FROM ticker_master WHERE ticker=?",
+        """SELECT ticker, name_ko, aliases_json, market, sector, asset_type
+           FROM ticker_master WHERE ticker=?""",
         (ticker,),
     ).fetchone()
     if not r:
-        return {"ticker": ticker, "name_ko": ticker, "aliases_json": "[]"}
+        return {
+            "ticker": ticker,
+            "name_ko": ticker,
+            "aliases_json": "[]",
+            "market": "-",
+            "sector": "-",
+            "asset_type": "stock",
+        }
     return dict(r)
+
+
+@lru_cache(maxsize=1)
+def _load_curated_facts() -> tuple[dict, ...]:
+    """seed/wiki_facts.csv 를 읽어 L0 claim을 보강한다.
+
+    재무 수치처럼 LLM 추출에 맡기면 안 되는 값은 CSV에 두고,
+    컴파일 시 항상 markdown에 포함되게 한다.
+    """
+    path = CFG.seed_dir / "wiki_facts.csv"
+    if not path.is_file():
+        return tuple()
+    out: list[dict] = []
+    with path.open(encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            ticker = (row.get("ticker") or "").strip()
+            section_type = (row.get("section_type") or "").strip()
+            claim_text = (row.get("claim_text") or "").strip()
+            if not ticker or section_type not in SECTION_TYPES or not claim_text:
+                continue
+            try:
+                confidence = float(row.get("confidence") or 0.95)
+            except ValueError:
+                confidence = 0.95
+            out.append({
+                "ticker": ticker,
+                "section_type": section_type,
+                "claim_text": claim_text,
+                "source_id": (row.get("source_label") or "curated").strip(),
+                "source_url": (row.get("source_url") or "").strip(),
+                "confidence": confidence,
+                "review_state": "approved",
+            })
+    return tuple(out)
+
+
+def _fetch_curated_claims(ticker: str, section_type: str) -> list[dict]:
+    return [
+        dict(r)
+        for r in _load_curated_facts()
+        if r["ticker"] == ticker and r["section_type"] == section_type
+    ]
 
 
 def _fetch_approved_claims(conn, ticker: str, section_type: str) -> list[dict]:
@@ -419,7 +542,16 @@ def _fetch_approved_claims(conn, ticker: str, section_type: str) -> list[dict]:
            ORDER BY confidence DESC LIMIT 20""",
         (ticker, section_type),
     ).fetchall()
-    return [dict(r) for r in rows]
+    claims: list[dict] = _fetch_curated_claims(ticker, section_type)
+    seen = {c["claim_text"] for c in claims}
+    for r in rows:
+        d = dict(r)
+        d["source_url"] = ""
+        if d["claim_text"] in seen:
+            continue
+        claims.append(d)
+        seen.add(d["claim_text"])
+    return claims
 
 
 def _fetch_events(conn, ticker: str, limit: int = 10,
@@ -437,9 +569,9 @@ def _fetch_events(conn, ticker: str, limit: int = 10,
 
 def _fetch_ticker_meta(conn, ticker: str) -> dict:
     r = conn.execute(
-        "SELECT market, sector FROM ticker_master WHERE ticker=?", (ticker,),
+        "SELECT market, sector, asset_type FROM ticker_master WHERE ticker=?", (ticker,),
     ).fetchone()
-    return dict(r) if r else {"market": "-", "sector": "-"}
+    return dict(r) if r else {"market": "-", "sector": "-", "asset_type": "stock"}
 
 
 # --- file writers -------------------------------------------------------------
@@ -476,29 +608,41 @@ def _upsert_section_index(conn, ticker: str, section_type: str,
     )
 
 
+def _process_claims(claims: list[dict], ticker: str,
+                    alias_map: list[tuple[str, str, str]],
+                    linked_targets: set[tuple[str, str | None]]) -> str:
+    """각 claim에 'linked' 필드를 채우고, 태그 추출용 corpus 문자열을 반환."""
+    parts: list[str] = []
+    for c in claims:
+        c["linked"] = _linkify_claim(c["claim_text"], ticker, alias_map, linked_targets)
+        parts.append(c["claim_text"])
+    return " ".join(parts)
+
+
+def _related_from_links(linked_targets: set[tuple[str, str | None]],
+                        name_by_code: dict[str, str]) -> list[dict]:
+    return [{"code": c, "name": name_by_code.get(c, c)}
+            for c, _ in sorted(linked_targets)]
+
+
 def compile_ticker(ticker: str) -> int:
     """ticker에 대한 모든 섹션 md를 렌더하여 디스크에 저장 + 인덱스 업데이트.
     리턴: 디스크에 쓴 섹션 개수 (SKILL.md 제외)."""
     updated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    tdir = ticker_dir(ticker)
     n = 0
 
     with tx() as conn:
         tm = _fetch_ticker(conn, ticker)
+        tdir = ticker_dir(ticker, tm.get("asset_type"))
         name_ko = tm["name_ko"]
         sector = tm.get("sector") if isinstance(tm, dict) else None
-        # ticker_master 에 sector가 있으면 가져오기
-        s_row = conn.execute(
-            "SELECT sector FROM ticker_master WHERE ticker=?", (ticker,)
-        ).fetchone()
-        if s_row:
-            sector = s_row["sector"]
 
         alias_map = _build_alias_map(conn)
         # 이름 조회 헬퍼 (related_tickers용)
         name_by_code = {t: n for _, t, n in alias_map}
 
         meta = _fetch_ticker_meta(conn, ticker)
+        asset_type = meta.get("asset_type", "stock")
 
         # 각 섹션 렌더 → 파일 쓰기 → 인덱스/태그/위키링크 업서트
         for stype in SECTION_TYPES:
@@ -506,32 +650,40 @@ def compile_ticker(ticker: str) -> int:
             linked_targets: set[tuple[str, str | None]] = set()
             corpus_text = ""    # 태그 추출용
 
+            # ----- 공통: claims (있는 섹션만) + events (이벤트 섹션만) -----
+            claims: list[dict] = []
+            if stype != "sns_events":
+                claims = _fetch_approved_claims(conn, ticker, stype)
+                corpus_text += _process_claims(claims, ticker, alias_map, linked_targets)
+
+            events: list[dict] = []
             if stype == "latest_events":
-                events = _fetch_events(conn, ticker,
-                                       include_types=("news", "disclosure"))
-                for e in events:
-                    e["linked_headline"] = _linkify_claim(
-                        e["headline"] or "", ticker, alias_map, linked_targets,
-                    )
-                    corpus_text += " " + (e["headline"] or "")
-                related = [{"code": c, "name": name_by_code.get(c, c)}
-                           for c, _ in sorted(linked_targets)]
-                tags = _extract_tags(corpus_text, "latest_events", sector)
+                events = _fetch_events(conn, ticker, include_types=("news", "disclosure"))
+            elif stype == "sns_events":
+                events = _fetch_events(conn, ticker, include_types=("sns",))
+            for e in events:
+                e["linked_headline"] = _linkify_claim(
+                    e["headline"] or "", ticker, alias_map, linked_targets,
+                )
+                corpus_text += " " + (e["headline"] or "")
+
+            related = _related_from_links(linked_targets, name_by_code)
+            tags = _extract_tags(corpus_text, stype, sector)
+
+            # 섹션이 다른 종목을 링크했다면 그 종목명 자체도 #tag 로 노출
+            # → ETF 의 relations/profile 섹션이 #삼성전자 #SK하이닉스 같은 태그를 갖게 되어
+            #   tag-based 검색·필터에서 활용 가능 (사용자 요구사항)
+            if linked_targets:
+                link_name_tags = {name_by_code.get(c, c) for c, _ in linked_targets}
+                tags = sorted(set(tags) | link_name_tags)[:12]
+
+            # ----- 섹션별 템플릿 렌더 -----
+            if stype == "latest_events":
                 raw = _TMPL_EVENTS.render(
-                    ticker=ticker, name_ko=name_ko, events=events,
+                    ticker=ticker, name_ko=name_ko, events=events, claims=claims,
                     tags=tags, updated_at=updated_at, related_tickers=related,
                 )
             elif stype == "sns_events":
-                events = _fetch_events(conn, ticker, include_types=("sns",))
-                for e in events:
-                    e["linked_headline"] = _linkify_claim(
-                        e["headline"] or "", ticker, alias_map, linked_targets,
-                    )
-                    corpus_text += " " + (e["headline"] or "")
-                related = [{"code": c, "name": name_by_code.get(c, c)}
-                           for c, _ in sorted(linked_targets)]
-                tags = _extract_tags(corpus_text, "sns_events", sector)
-                # SNS 성격 태그 강제 추가
                 if "SNS" not in tags:
                     tags = sorted(set(tags) | {"SNS"})[:10]
                 raw = _TMPL_SNS_EVENTS.render(
@@ -539,32 +691,15 @@ def compile_ticker(ticker: str) -> int:
                     tags=tags, updated_at=updated_at, related_tickers=related,
                 )
             elif stype == "finance":
-                claims = _fetch_approved_claims(conn, ticker, "finance")
-                for c in claims:
-                    c["linked"] = _linkify_claim(
-                        c["claim_text"], ticker, alias_map, linked_targets,
-                    )
-                    corpus_text += " " + c["claim_text"]
-                related = [{"code": c, "name": name_by_code.get(c, c)}
-                           for c, _ in sorted(linked_targets)]
-                tags = _extract_tags(corpus_text, "finance", sector)
-                # 외부 데이터 소스 태그 추가
-                if "FnGuide" not in tags:
-                    tags = sorted(set(tags) | {"FnGuide"})[:10]
+                source_tag = "ETF" if asset_type == "etf" else "FnGuide"
+                if source_tag not in tags:
+                    tags = sorted(set(tags) | {source_tag})[:10]
                 raw = _TMPL_FINANCE.render(
                     ticker=ticker, name_ko=name_ko, claims=claims,
                     tags=tags, updated_at=updated_at, related_tickers=related,
+                    asset_type=asset_type,
                 )
             elif stype == "theme":
-                claims = _fetch_approved_claims(conn, ticker, "theme")
-                for c in claims:
-                    c["linked"] = _linkify_claim(
-                        c["claim_text"], ticker, alias_map, linked_targets,
-                    )
-                    corpus_text += " " + c["claim_text"]
-                related = [{"code": c, "name": name_by_code.get(c, c)}
-                           for c, _ in sorted(linked_targets)]
-                tags = _extract_tags(corpus_text, "theme", sector)
                 raw = _TMPL_THEME.render(
                     ticker=ticker, name_ko=name_ko, claims=claims,
                     market=meta.get("market", "-"),
@@ -572,15 +707,6 @@ def compile_ticker(ticker: str) -> int:
                     tags=tags, updated_at=updated_at, related_tickers=related,
                 )
             else:
-                claims = _fetch_approved_claims(conn, ticker, stype)
-                for c in claims:
-                    c["linked"] = _linkify_claim(
-                        c["claim_text"], ticker, alias_map, linked_targets,
-                    )
-                    corpus_text += " " + c["claim_text"]
-                related = [{"code": c, "name": name_by_code.get(c, c)}
-                           for c, _ in sorted(linked_targets)]
-                tags = _extract_tags(corpus_text, stype, sector)
                 raw = _TMPL_STATIC.render(
                     ticker=ticker, name_ko=name_ko, section_type=stype,
                     claims=claims, tags=tags, updated_at=updated_at,
@@ -649,7 +775,9 @@ def regenerate_index() -> None:
     rows: list[dict] = []
     with tx() as conn:
         for r in conn.execute("""
-            SELECT tm.ticker, tm.name_ko, COALESCE(tt.tier,'lazy') AS tier,
+            SELECT tm.ticker, tm.name_ko,
+                   COALESCE(tm.asset_type,'stock') AS asset_type,
+                   COALESCE(tt.tier,'lazy') AS tier,
                    COUNT(sd.doc_id) AS sec_n, MAX(sd.updated_at) AS updated_at
             FROM ticker_master tm
             LEFT JOIN ticker_tier tt ON tt.ticker = tm.ticker
@@ -657,7 +785,9 @@ def regenerate_index() -> None:
             GROUP BY tm.ticker
             ORDER BY tm.ticker
         """).fetchall():
-            rows.append(dict(r))
+            d = dict(r)
+            d["base_dir"] = "etfs" if d["asset_type"] == "etf" else "tickers"
+            rows.append(d)
     _write_file(WIKI_ROOT / "index.md",
                 _TMPL_INDEX.render(rows=rows, updated_at=updated_at))
 

@@ -55,15 +55,20 @@ def embed_pending(batch: int = 32) -> int:
     return len(embedded)
 
 
-def load_matrix(where_sql: str = "", params: tuple = ()) -> tuple[list[dict], np.ndarray]:
+def load_matrix(where_sql: str = "", params: tuple = (), *,
+                conn=None) -> tuple[list[dict], np.ndarray]:
     """section_doc 인덱스 로드 + 대응 본문을 파일에서 읽어 dict에 채워 반환.
 
-    반환 rows 각각에 'content' 키가 추가됨 (BM25·프롬프트 조립용)."""
+    반환 rows 각각에 'content' 키가 추가됨 (BM25·프롬프트 조립용).
+    `conn` 이 주어지면 외부 트랜잭션을 재사용한다 (여러 호출을 한 tx로 묶기 위함)."""
     sql = "SELECT doc_id, ticker, section_type, file_path, embedding FROM section_doc"
     if where_sql:
         sql += " WHERE " + where_sql
-    with tx() as conn:
+    if conn is not None:
         rows = [dict(r) for r in conn.execute(sql, params).fetchall()]
+    else:
+        with tx() as _c:
+            rows = [dict(r) for r in _c.execute(sql, params).fetchall()]
     if not rows:
         return [], np.zeros((0, 1), dtype=np.float32)
 

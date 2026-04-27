@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS ticker_master (
   aliases_json   TEXT NOT NULL DEFAULT '[]',
   market         TEXT,                     -- KOSPI / KOSDAQ
   sector         TEXT,
+  asset_type     TEXT NOT NULL DEFAULT 'stock', -- stock | etf
   is_preferred   INTEGER NOT NULL DEFAULT 0
 );
 
@@ -42,6 +43,7 @@ CREATE TABLE IF NOT EXISTS stock_event_timeline (
   FOREIGN KEY(ticker) REFERENCES ticker_master(ticker)
 );
 CREATE INDEX IF NOT EXISTS idx_evt_ticker_time ON stock_event_timeline(ticker, occurred_at DESC);
+CREATE INDEX IF NOT EXISTS idx_evt_source_id ON stock_event_timeline(source_id);
 
 -- extracted claims (factual statements with source pointer + review gate)
 CREATE TABLE IF NOT EXISTS stock_claim (

@@ -3,9 +3,9 @@ doc_id: "005940:theme"
 ticker: "005940"
 section_type: theme
 name_ko: "NH투자증권"
-tags: [AI, theme, 증권]
-updated_at: "2026-04-24T04:46:11+00:00"
-source: "derived from L0 stock_claim (theme) + ticker_master"
+tags: [AI, AI Agent, theme, 증권]
+updated_at: "2026-04-27T01:17:38+00:00"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 
 # NH투자증권 (005940) — 테마·업종·섹터
@@ -17,8 +17,7 @@ source: "derived from L0 stock_claim (theme) + ticker_master"
 
 
 ## 주요 테마
-- 증권업계에서 리테일 브로커리지 점유율 경쟁이 심화되고 있다.
-- 증권사 간 UX·AI 투자정보 차별화가 경쟁 축으로 거론된다.
+- NH투자증권은 증권, 금융주, AI Agent, IB·IPO 회복, 거래대금 사이클 테마에 묶인다.  _(src:Curated · conf:0.90)_
 
 
 
