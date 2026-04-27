@@ -2,7 +2,7 @@
 ticker: "005930"
 name_ko: "삼성전자"
 kind: skill
-updated_at: "2026-04-24T04:36:15+00:00"
+updated_at: "2026-04-27T02:05:36+00:00"
 ---
 
 # 삼성전자 (005930) — SKILL
@@ -15,6 +15,7 @@ updated_at: "2026-04-24T04:36:15+00:00"
 - Samsung Elec
 - SEC
 - 삼전
+- 파운드리
 
 
 ## 지원 intent → 우선 섹션

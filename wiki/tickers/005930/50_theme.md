@@ -3,9 +3,9 @@ doc_id: "005930:theme"
 ticker: "005930"
 section_type: theme
 name_ko: "삼성전자"
-tags: [HBM, theme, 반도체]
-updated_at: "2026-04-24T04:36:15+00:00"
-source: "derived from L0 stock_claim (theme) + ticker_master"
+tags: [AI, AI가속기, HBM, theme, 메모리, 반도체, 파운드리]
+updated_at: "2026-04-27T02:05:36+00:00"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 
 # 삼성전자 (005930) — 테마·업종·섹터
@@ -17,9 +17,7 @@ source: "derived from L0 stock_claim (theme) + ticker_master"
 
 
 ## 주요 테마
-- 삼성전자는 메모리 반도체 업황 영향을 받는다.
-- HBM 점유율 회복이 시장의 핵심 관심사다.
-- 국내외 리서치가 메모리 업황 저점 통과를 분석했다.
+- 삼성전자는 반도체, HBM, 파운드리, AI 가속기, 메모리 사이클, 스마트폰, 디스플레이 테마에 묶인다.  _(src:Curated · conf:0.93)_
 
 
 

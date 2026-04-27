@@ -26,7 +26,9 @@ services:
     volumes:
       - ./data:/app/data
       - ./wiki:/app/wiki
-      - ./seed:/app/seed:ro      # 시드 변경이 즉시 반영되도록 bind (ro)
+      # admin UI(/wiki/admin) 가 seed/wiki_facts.csv 를 직접 수정하므로 RW 마운트.
+      # 호스트 파일에 그대로 반영됨 → git 으로 변경분 추적·커밋 가능.
+      - ./seed:/app/seed
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request as r; r.urlopen('http://127.0.0.1:8001/health', timeout=3)"]
       interval: 30s

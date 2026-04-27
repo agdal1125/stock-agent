@@ -65,6 +65,10 @@ def eval_one(case: dict, run_llm: bool) -> CaseResult:
         citation_ok = case["expect_ticker"] in cited_tickers
         kws = case.get("expect_any_keywords") or []
         keyword_ok = any(kw in answer_text for kw in kws) if kws else True
+    elif not run_llm:
+        # --no-llm is meant to evaluate resolver/router only.
+        citation_ok = True
+        keyword_ok = True
     elif not case.get("expect_ticker"):
         # negative case: ticker 미확인이 기대 동작
         citation_ok = got_ticker is None

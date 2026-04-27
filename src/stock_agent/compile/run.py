@@ -81,6 +81,11 @@ def lazy_compile(ticker: str) -> int:
             (ticker, datetime.now(timezone.utc).isoformat(timespec="seconds")),
         )
     regenerate_index()
+    try:
+        from ..agent_int.qu import reset_known_tags_cache
+        reset_known_tags_cache()
+    except Exception:
+        pass
     append_log(f"lazy compile: {ticker} ({n} sections)")
     return n
 
@@ -94,6 +99,12 @@ def run_eager_pipeline() -> dict:
         docs_n += compile_ticker(t)
     embeds_n = embed_pending()
     regenerate_index()
+    # tag 어휘가 갱신됐을 수 있으므로 qu._known_tags 캐시 무효화
+    try:
+        from ..agent_int.qu import reset_known_tags_cache
+        reset_known_tags_cache()
+    except Exception:
+        pass
     append_log(f"eager pipeline: eager={eager_n}, compiled={len(tickers)}, sections={docs_n}, embeds={embeds_n}")
     return {"eager_tickers": eager_n, "compiled_tickers": len(tickers),
             "section_docs": docs_n, "embeddings": embeds_n}

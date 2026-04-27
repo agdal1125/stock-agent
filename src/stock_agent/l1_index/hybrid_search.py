@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from functools import lru_cache
 
 import numpy as np
 from rank_bm25 import BM25Okapi
@@ -24,8 +25,19 @@ from .embedder import load_matrix
 _TOKEN_RE = re.compile(r"[A-Za-z0-9]+|[가-힣]+")
 
 
+@lru_cache(maxsize=2048)
+def _tokenize_cached(text: str) -> tuple[str, ...]:
+    """tokenize 결과를 doc 본문/질의 문자열 단위로 캐시.
+
+    BM25 corpus 는 질의마다 ticker 필터로 달라져 BM25Okapi 인스턴스 자체를
+    캐시하는 것은 무효해지기 쉬움. 반면 같은 섹션 본문은 변하지 않는 한 토큰화
+    결과가 동일하므로 본문 → 토큰 매핑만 LRU 캐시로 재사용한다.
+    """
+    return tuple(_TOKEN_RE.findall(text.lower()))
+
+
 def tokenize(text: str) -> list[str]:
-    return _TOKEN_RE.findall(text.lower())
+    return list(_tokenize_cached(text))
 
 
 @dataclass
@@ -73,6 +85,7 @@ def _primary_candidate_sql(
 
 
 def _tag_expansion_docs(
+    conn,
     tags: list[str],
     exclude_tickers: set[str],
     section_types: list[str] | None = None,
@@ -84,22 +97,21 @@ def _tag_expansion_docs(
     """
     if not tags:
         return {}
-    with tx() as conn:
-        placeholders = ",".join(["?"] * len(tags))
-        sec_filter = ""
-        params: list = list(tags)
-        if section_types:
-            sec_filter = " AND sd.section_type IN (" + \
-                         ",".join(["?"] * len(section_types)) + ")"
-            params.extend(section_types)
-        rows = conn.execute(
-            f"""SELECT sd.doc_id, st.tag
-                FROM section_tag st
-                JOIN section_doc sd ON sd.doc_id = st.doc_id
-                WHERE st.tag IN ({placeholders}){sec_filter}
-                ORDER BY st.tag""",
-            tuple(params),
-        ).fetchall()
+    placeholders = ",".join(["?"] * len(tags))
+    sec_filter = ""
+    params: list = list(tags)
+    if section_types:
+        sec_filter = " AND sd.section_type IN (" + \
+                     ",".join(["?"] * len(section_types)) + ")"
+        params.extend(section_types)
+    rows = conn.execute(
+        f"""SELECT sd.doc_id, st.tag
+            FROM section_tag st
+            JOIN section_doc sd ON sd.doc_id = st.doc_id
+            WHERE st.tag IN ({placeholders}){sec_filter}
+            ORDER BY st.tag""",
+        tuple(params),
+    ).fetchall()
     out: dict[str, str] = {}
     for r in rows:
         doc_id = r["doc_id"]
@@ -115,6 +127,7 @@ def _tag_expansion_docs(
 
 
 def _wikilink_expansion_tickers(
+    conn,
     primary_doc_ids: list[str],
     exclude_tickers: set[str],
     limit_tickers: int = 3,
@@ -123,13 +136,12 @@ def _wikilink_expansion_tickers(
     if not primary_doc_ids:
         return {}
     placeholders = ",".join(["?"] * len(primary_doc_ids))
-    with tx() as conn:
-        rows = conn.execute(
-            f"""SELECT wl.target_ticker, wl.src_doc_id
-                FROM section_wikilink wl
-                WHERE wl.src_doc_id IN ({placeholders})""",
-            tuple(primary_doc_ids),
-        ).fetchall()
+    rows = conn.execute(
+        f"""SELECT wl.target_ticker, wl.src_doc_id
+            FROM section_wikilink wl
+            WHERE wl.src_doc_id IN ({placeholders})""",
+        tuple(primary_doc_ids),
+    ).fetchall()
     out: dict[str, str] = {}  # ticker → source label
     for r in rows:
         tgt = r["target_ticker"]
@@ -143,6 +155,7 @@ def _wikilink_expansion_tickers(
 
 
 def _ticker_expansion_docs(
+    conn,
     expand_tickers: dict[str, str],
     section_types: list[str] | None,
 ) -> dict[str, str]:
@@ -157,12 +170,11 @@ def _ticker_expansion_docs(
         sec_filter = " AND section_type IN (" + \
                      ",".join(["?"] * len(section_types)) + ")"
         params.extend(section_types)
-    with tx() as conn:
-        rows = conn.execute(
-            f"""SELECT doc_id, ticker FROM section_doc
-                WHERE ticker IN ({placeholders}){sec_filter}""",
-            tuple(params),
-        ).fetchall()
+    rows = conn.execute(
+        f"""SELECT doc_id, ticker FROM section_doc
+            WHERE ticker IN ({placeholders}){sec_filter}""",
+        tuple(params),
+    ).fetchall()
     out: dict[str, str] = {}
     for r in rows:
         out[r["doc_id"]] = expand_tickers[r["ticker"]]
@@ -188,64 +200,69 @@ def search(
     ----------
     expand_tags : Query Understanding 이 제시한 보조 태그 (None=미사용)
     expand_tickers : 이미 아는 연관 종목 (wikilink traversal 결과와 합쳐짐)
+
+    Implementation note
+    -------------------
+    1차 후보 로드 → wikilink/tag 확장 → 확장 후보 로드 까지 SQL을 **단일 트랜잭션**
+    으로 묶어 SQLite connect/close 비용(연결당 ~1ms × 4–6회)을 1회로 줄였다.
     """
-    # ------------------------------------------------------------------
-    # 1) primary 후보 — ticker namespace + section_types
-    #    (tickers 없으면 tag-only 경로로 전환)
-    # ------------------------------------------------------------------
-    tag_primary_docs: dict[str, str] = {}
-    if not tickers and expand_tags:
-        # 태그 기반 primary — 종목 지정 없이 태그로만 후보 수집
-        tag_primary_docs = _tag_expansion_docs(
-            expand_tags, exclude_tickers=set(), section_types=section_types, limit=24,
+    with tx() as conn:
+        # ------------------------------------------------------------------
+        # 1) primary 후보 — ticker namespace + section_types
+        #    (tickers 없으면 tag-only 경로로 전환)
+        # ------------------------------------------------------------------
+        tag_primary_docs: dict[str, str] = {}
+        if not tickers and expand_tags:
+            tag_primary_docs = _tag_expansion_docs(
+                conn, expand_tags, exclude_tickers=set(),
+                section_types=section_types, limit=24,
+            )
+
+        if tag_primary_docs:
+            placeholders = ",".join(["?"] * len(tag_primary_docs))
+            primary_rows, primary_vecs = load_matrix(
+                f"doc_id IN ({placeholders})", tuple(tag_primary_docs.keys()),
+                conn=conn,
+            )
+            doc_source: dict[str, str] = dict(tag_primary_docs)
+        else:
+            where_sql, params = _primary_candidate_sql(tickers, section_types)
+            primary_rows, primary_vecs = load_matrix(
+                where_sql, tuple(params), conn=conn,
+            )
+            doc_source = {r["doc_id"]: "primary" for r in primary_rows}
+
+        primary_tickers_set = set(tickers or [])
+        if tag_primary_docs:
+            primary_tickers_set |= {r["ticker"] for r in primary_rows}
+        primary_doc_ids = [r["doc_id"] for r in primary_rows]
+
+        # ------------------------------------------------------------------
+        # 2) expand_tickers — 명시적으로 준 연관 종목 섹션을 편입
+        # ------------------------------------------------------------------
+        ticker_exp: dict[str, str] = {}
+        if expand_tickers:
+            ticker_exp = {t: f"related:{t}" for t in expand_tickers
+                          if t not in primary_tickers_set}
+
+        # ------------------------------------------------------------------
+        # 3) wikilink traversal (1-hop) — primary 섹션이 링크하는 다른 종목
+        # ------------------------------------------------------------------
+        wl_tickers = _wikilink_expansion_tickers(
+            conn, primary_doc_ids, primary_tickers_set | set(ticker_exp.keys()),
         )
+        for tk, src in wl_tickers.items():
+            ticker_exp.setdefault(tk, src)
 
-    if tag_primary_docs:
-        placeholders = ",".join(["?"] * len(tag_primary_docs))
-        primary_rows, primary_vecs = load_matrix(
-            f"doc_id IN ({placeholders})", tuple(tag_primary_docs.keys()),
-        )
-        doc_source: dict[str, str] = dict(tag_primary_docs)  # source: tag:<tag>
-    else:
-        where_sql, params = _primary_candidate_sql(tickers, section_types)
-        primary_rows, primary_vecs = load_matrix(where_sql, tuple(params))
-        doc_source = {r["doc_id"]: "primary" for r in primary_rows}
+        ticker_exp_docs = _ticker_expansion_docs(conn, ticker_exp, section_types)
+        for doc_id, src in ticker_exp_docs.items():
+            doc_source.setdefault(doc_id, src)
 
-    primary_tickers_set = set(tickers or [])
-    if tag_primary_docs:
-        primary_tickers_set |= {r["ticker"] for r in primary_rows}
-    primary_doc_ids = [r["doc_id"] for r in primary_rows]
-
-    # ------------------------------------------------------------------
-    # 2) expand_tickers — 명시적으로 준 연관 종목 섹션을 편입
-    # ------------------------------------------------------------------
-    ticker_exp: dict[str, str] = {}
-    if expand_tickers:
-        ticker_exp = {t: f"related:{t}" for t in expand_tickers
-                      if t not in primary_tickers_set}
-
-    # ------------------------------------------------------------------
-    # 3) wikilink traversal (1-hop) — primary 섹션이 링크하는 다른 종목
-    # ------------------------------------------------------------------
-    wl_tickers = _wikilink_expansion_tickers(
-        primary_doc_ids, primary_tickers_set | set(ticker_exp.keys()),
-    )
-    # ticker_exp 에 없는 것만 추가
-    for tk, src in wl_tickers.items():
-        ticker_exp.setdefault(tk, src)
-
-    # 섹션 레벨로 확장
-    ticker_exp_docs = _ticker_expansion_docs(ticker_exp, section_types)
-    for doc_id, src in ticker_exp_docs.items():
-        doc_source.setdefault(doc_id, src)
-
-    # ------------------------------------------------------------------
-    # 4) 태그 확장 — expand_tags + primary 섹션이 가진 상위 태그
-    # ------------------------------------------------------------------
-    tags_pool: list[str] = list(expand_tags or [])
-    # primary 섹션의 태그 상위도 수집
-    if primary_doc_ids:
-        with tx() as conn:
+        # ------------------------------------------------------------------
+        # 4) 태그 확장 — expand_tags + primary 섹션이 가진 상위 태그
+        # ------------------------------------------------------------------
+        tags_pool: list[str] = list(expand_tags or [])
+        if primary_doc_ids:
             placeholders = ",".join(["?"] * len(primary_doc_ids))
             top_tags = conn.execute(
                 f"""SELECT tag, COUNT(*) n FROM section_tag
@@ -253,32 +270,34 @@ def search(
                     GROUP BY tag ORDER BY n DESC LIMIT 3""",
                 tuple(primary_doc_ids),
             ).fetchall()
-        for r in top_tags:
-            if r["tag"] not in tags_pool:
-                tags_pool.append(r["tag"])
-    # 과도 확장 방지
-    tags_pool = tags_pool[:5]
+            for r in top_tags:
+                if r["tag"] not in tags_pool:
+                    tags_pool.append(r["tag"])
+        tags_pool = tags_pool[:5]
 
-    tag_docs = _tag_expansion_docs(
-        tags_pool,
-        primary_tickers_set | set(ticker_exp.keys()),
-        section_types,
-    )
-    for doc_id, src in tag_docs.items():
-        doc_source.setdefault(doc_id, src)
-
-    # ------------------------------------------------------------------
-    # 5) 확장 후보가 primary rows 외에 있으면 별도 로드
-    # ------------------------------------------------------------------
-    expansion_doc_ids = [d for d in doc_source if d not in set(primary_doc_ids)]
-    if expansion_doc_ids:
-        placeholders = ",".join(["?"] * len(expansion_doc_ids))
-        exp_rows, exp_vecs = load_matrix(
-            f"doc_id IN ({placeholders})", tuple(expansion_doc_ids),
+        tag_docs = _tag_expansion_docs(
+            conn, tags_pool,
+            primary_tickers_set | set(ticker_exp.keys()),
+            section_types,
         )
-    else:
-        exp_rows, exp_vecs = [], np.zeros((0, primary_vecs.shape[1] if primary_vecs.size else 1),
-                                          dtype=np.float32)
+        for doc_id, src in tag_docs.items():
+            doc_source.setdefault(doc_id, src)
+
+        # ------------------------------------------------------------------
+        # 5) 확장 후보가 primary rows 외에 있으면 별도 로드 (같은 conn)
+        # ------------------------------------------------------------------
+        expansion_doc_ids = [d for d in doc_source if d not in set(primary_doc_ids)]
+        if expansion_doc_ids:
+            placeholders = ",".join(["?"] * len(expansion_doc_ids))
+            exp_rows, exp_vecs = load_matrix(
+                f"doc_id IN ({placeholders})", tuple(expansion_doc_ids),
+                conn=conn,
+            )
+        else:
+            exp_rows, exp_vecs = [], np.zeros(
+                (0, primary_vecs.shape[1] if primary_vecs.size else 1),
+                dtype=np.float32,
+            )
 
     all_rows = primary_rows + exp_rows
     if not all_rows:

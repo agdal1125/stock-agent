@@ -3,23 +3,17 @@ doc_id: "005930:business"
 ticker: "005930"
 section_type: business
 name_ko: "삼성전자"
-tags: [3nm, DRAM, GAA, HBM, NAND, SSD, business, 반도체, 수주, 파운드리]
-updated_at: "2026-04-24T04:36:15+00:00"
-source: "derived from L0 stock_claim (review_state=approved)"
+tags: [3nm, AI, AI가속기, DRAM, GAA, HBM, NAND, SSD, business, 반도체]
+updated_at: "2026-04-27T02:05:36+00:00"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
 # 삼성전자 (005930) — business
 
 
-- 메모리 제품군에 DRAM과 NAND, SSD가 있다.
-- 스마트폰 MX와 가전 DX 사업도 영위한다.
-- 갤럭시 플래그십 스마트폰과 폴더블을 만든다.
-- 파운드리에서 3nm GAA 공정을 양산 중이다.
-- TV와 생활가전은 VD·DA 사업에 해당한다.
-- 삼성전자는 디스플레이와 부품 사업을 포함한다.
-- 삼성전자는 3nm GAA 공정 기반 파운드리 사업을 한다
-- 본문에는 북미 팹리스 신규 수주설이 언급됐다
-- 삼성전자가 차세대 HBM4 엔지니어링 샘플을 출하했다
+- DS 부문은 DRAM(DDR5·LPDDR5X·HBM3E·HBM4), NAND, SSD를 양산하고 시스템LSI는 모바일 AP·이미지센서, 파운드리는 3nm GAA 공정을 운영한다.  _(src:Curated · conf:0.93)_
+- DX 부문은 갤럭시 S/Z 시리즈 스마트폰(MX), QLED·OLED TV, 생활가전(VD/DA)을 포함하며 글로벌 판매망이 매출 변동성을 흡수한다.  _(src:Curated · conf:0.90)_
+- HBM 주요 고객은 엔비디아·AMD 등 AI 가속기 업체이며 HBM3E 12단·HBM4 양산 진입 시점이 점유율 회복의 분수령이다.  _(src:Curated · conf:0.90)_
 
 
 

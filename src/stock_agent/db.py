@@ -17,11 +17,30 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
+def _has_column(conn: sqlite3.Connection, table: str, column: str) -> bool:
+    rows = conn.execute(f"PRAGMA table_info({table})").fetchall()
+    return any(r["name"] == column for r in rows)
+
+
+def _apply_lightweight_migrations(conn: sqlite3.Connection) -> None:
+    """Small additive migrations for existing local PoC databases.
+
+    The schema is mostly `CREATE TABLE IF NOT EXISTS`, so new columns need
+    explicit ALTERs when a developer keeps an older `data/canonical.db`.
+    """
+    if not _has_column(conn, "ticker_master", "asset_type"):
+        conn.execute(
+            "ALTER TABLE ticker_master "
+            "ADD COLUMN asset_type TEXT NOT NULL DEFAULT 'stock'"
+        )
+
+
 def init_db() -> None:
     sql = SCHEMA_PATH.read_text(encoding="utf-8")
     conn = connect()
     try:
         conn.executescript(sql)
+        _apply_lightweight_migrations(conn)
         conn.commit()
     finally:
         conn.close()

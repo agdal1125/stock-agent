@@ -3,15 +3,15 @@ doc_id: "012510:relations"
 ticker: "012510"
 section_type: relations
 name_ko: "더존비즈온"
-tags: [relations, 소프트웨어]
-updated_at: "2026-04-24T04:46:01+00:00"
-source: "derived from L0 stock_claim (review_state=approved)"
+tags: [ERP, relations, 소프트웨어, 클라우드]
+updated_at: "2026-04-27T01:17:39+00:00"
+source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
 # 더존비즈온 (012510) — relations
 
 
-- 더존비즈온은 국내 금융사 일부와 협력을 논의 중이다
+- 국내 ERP 경쟁사는 영림원소프트랩·이지스, 글로벌은 SAP·오라클이며 클라우드 인프라는 NAVER 클라우드·AWS와 협력한다.  _(src:Curated · conf:0.85)_
 
 
 

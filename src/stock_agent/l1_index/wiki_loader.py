@@ -15,16 +15,22 @@ from ..config import CFG
 
 WIKI_ROOT = CFG.data_dir.parent / "wiki"     # <proj>/wiki/
 TICKERS_ROOT = WIKI_ROOT / "tickers"
+ETFS_ROOT = WIKI_ROOT / "etfs"
 
 
 def wiki_root() -> Path:
     WIKI_ROOT.mkdir(parents=True, exist_ok=True)
     TICKERS_ROOT.mkdir(parents=True, exist_ok=True)
+    ETFS_ROOT.mkdir(parents=True, exist_ok=True)
     return WIKI_ROOT
 
 
-def ticker_dir(ticker: str) -> Path:
-    d = TICKERS_ROOT / ticker
+def instrument_root(asset_type: str | None = None) -> Path:
+    return ETFS_ROOT if (asset_type or "").lower() == "etf" else TICKERS_ROOT
+
+
+def ticker_dir(ticker: str, asset_type: str | None = None) -> Path:
+    d = instrument_root(asset_type) / ticker
     d.mkdir(parents=True, exist_ok=True)
     return d
 
@@ -69,17 +75,18 @@ def load_section_file(path: Path) -> WikiSection | None:
 
 
 def iter_section_files() -> list[Path]:
-    if not TICKERS_ROOT.exists():
-        return []
     out: list[Path] = []
-    for tdir in sorted(TICKERS_ROOT.iterdir()):
-        if not tdir.is_dir():
+    for root in (TICKERS_ROOT, ETFS_ROOT):
+        if not root.exists():
             continue
-        for p in sorted(tdir.glob("*.md")):
-            # SKILL.md는 정책 파일 — 검색 인덱스에서 제외
-            if p.name.upper() == "SKILL.MD":
+        for tdir in sorted(root.iterdir()):
+            if not tdir.is_dir():
                 continue
-            out.append(p)
+            for p in sorted(tdir.glob("*.md")):
+                # SKILL.md는 정책 파일 — 검색 인덱스에서 제외
+                if p.name.upper() == "SKILL.MD":
+                    continue
+                out.append(p)
     return out
 
 
@@ -90,13 +97,16 @@ def load_by_doc_id(doc_id: str) -> WikiSection | None:
         ticker, stype = doc_id.split(":", 1)
     except ValueError:
         return None
-    tdir = ticker_dir(ticker)
     # 파일명은 NN_section.md 형태로 저장되므로 suffix 일치로 탐색
-    for p in tdir.glob("*.md"):
-        if p.name.upper() == "SKILL.MD":
+    for root in (TICKERS_ROOT, ETFS_ROOT):
+        tdir = root / ticker
+        if not tdir.exists():
             continue
-        if p.stem.endswith(f"_{stype}"):
-            return load_section_file(p)
+        for p in tdir.glob("*.md"):
+            if p.name.upper() == "SKILL.MD":
+                continue
+            if p.stem.endswith(f"_{stype}"):
+                return load_section_file(p)
     return None
 
 
