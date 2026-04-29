@@ -2,7 +2,7 @@
 ticker: "069500"
 name_ko: "KODEX 200"
 kind: skill
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 ---
 
 # KODEX 200 (069500) — SKILL

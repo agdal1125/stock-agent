@@ -4,7 +4,7 @@ ticker: "360750"
 section_type: profile
 name_ko: "TIGER 미국S&P500"
 tags: [ETF, S&P500, profile, 대형주, 해외주식ETF]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 

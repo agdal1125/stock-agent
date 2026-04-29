@@ -4,7 +4,7 @@ ticker: "012510"
 section_type: latest_events
 name_ko: "더존비즈온"
 tags: [AI, AI Agent, SaaS, latest_events, 배당, 소프트웨어, 실적]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:08:22+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 

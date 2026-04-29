@@ -4,7 +4,7 @@ ticker: "032820"
 section_type: theme
 name_ko: "우리기술"
 tags: [SMR, theme, 원자력, 전기전자]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:19+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 
@@ -18,6 +18,15 @@ source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_mast
 
 ## 주요 테마
 - 우리기술은 SMR, 원전, 원자력, 산업자동화, K-원전 수출, 발전소 DCS 테마에 묶인다.  _(src:Curated · conf:0.92)_
+- 정부가 원전 생태계 복원 로드맵을 발표할 예정
+- 우리기술은 SMR 테마 강세에 동반 상승했다
+- 원자력 관련주가 강세를 보였다
+- SMR 관련 테마에 편입돼 있다
+- 소형모듈원전(SMR) 관련 정책 기대감으로 원전 기자재 테마가 강세를 보였다
+- 원전 관련 정책 모멘텀에 주가 민감도가 높은 편이다
+- 해외 원전 수출이 본격화되면 국내 기자재 업체에 낙수 효과가 기대된다고 전해진다.
+- 우리기술은 해외 원전 프로젝트와 연관된 시장의 관심을 받고 있다.
+- 정책 구체성 공개 뒤 업체별 수혜 규모 차별화가 예상된다
 
 
 

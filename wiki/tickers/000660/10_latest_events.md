@@ -4,7 +4,7 @@ ticker: "000660"
 section_type: latest_events
 name_ko: "SK하이닉스"
 tags: [HBM, SSD, latest_events, 반도체, 배당]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:40+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 

@@ -3,8 +3,8 @@ doc_id: "068270:business"
 ticker: "068270"
 section_type: business
 name_ko: "셀트리온"
-tags: [ADC, business, 바이오, 바이오시밀러, 이중항체]
-updated_at: "2026-04-27T01:17:38+00:00"
+tags: [ADC, business, 바이오, 바이오시밀러, 이중항체, 임상]
+updated_at: "2026-04-27T03:02:46+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
@@ -13,6 +13,15 @@ source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approve
 
 - 바이오시밀러 7종 글로벌 판매가 핵심이며, 셀트리온헬스케어·셀트리온제약과의 합병 후 일원화된 생산·판매 구조를 갖췄다.  _(src:Curated · conf:0.90)_
 - 송도 제1·2공장과 미국 위탁생산(CMO) 네트워크를 통해 항체 의약품을 공급하며, 신약 파이프라인은 항체-약물 접합체(ADC)·이중항체로 확장 중이다.  _(src:Curated · conf:0.85)_
+- 램시마·트룩시마·허쥬마를 글로벌 시장에 공급한다
+- 이 제품은 우스테키누맙 기반의 바이오시밀러다
+- 셀트리온의 스텔라라 바이오시밀러가 미국에서 처방 확대 중이다
+- 주요 바이오시밀러로 유플라이마를 보유한다
+- 자가면역·종양 영역의 신약 파이프라인을 운용한다
+- 해당 신약 후보의 임상 2상 중간 데이터가 글로벌 학회에서 공개될 예정이다.
+- 셀트리온은 자체 개발 중인 자가면역 질환 신약 후보를 보유했다.
+- 미국과 유럽에 직판 체계를 확립했다고 적시했다
+- 셀트리온의 본업 방향성은 바이오시밀러 처방 확대에 달려 있다
 
 
 

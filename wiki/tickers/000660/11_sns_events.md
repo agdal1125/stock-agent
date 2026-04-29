@@ -4,7 +4,7 @@ ticker: "000660"
 section_type: sns_events
 name_ko: "SK하이닉스"
 tags: [HBM, SNS, sns_events, 반도체]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:40+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

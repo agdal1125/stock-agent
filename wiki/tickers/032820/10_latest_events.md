@@ -4,7 +4,7 @@ ticker: "032820"
 section_type: latest_events
 name_ko: "우리기술"
 tags: [SMR, latest_events, 원자력, 전기전자, 특징주]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:19+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 

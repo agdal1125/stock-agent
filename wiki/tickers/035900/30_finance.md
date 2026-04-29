@@ -4,7 +4,7 @@ ticker: "035900"
 section_type: finance
 name_ko: "JYP Ent."
 tags: [FnGuide, finance, 엔터테인먼트, 환율]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (finance)"
 
 external_refs:

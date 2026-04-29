@@ -4,7 +4,7 @@ ticker: "379810"
 section_type: finance
 name_ko: "KODEX 미국나스닥100TR"
 tags: [ETF, TR지수, finance, 해외주식ETF]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (finance)"
 
 ---

@@ -4,7 +4,7 @@ ticker: "091160"
 section_type: relations
 name_ko: "KODEX 반도체"
 tags: [SK하이닉스, relations, 메모리, 반도체, 삼성전자, 섹터ETF, 후공정]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 

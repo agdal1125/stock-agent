@@ -4,7 +4,7 @@ ticker: "032820"
 section_type: sns_events
 name_ko: "우리기술"
 tags: [SMR, SNS, sns_events, 전기전자]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:19+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

@@ -4,7 +4,7 @@ ticker: "035900"
 section_type: sns_events
 name_ko: "JYP Ent."
 tags: [SNS, sns_events, 엔터테인먼트]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

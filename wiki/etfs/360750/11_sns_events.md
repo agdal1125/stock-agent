@@ -4,7 +4,7 @@ ticker: "360750"
 section_type: sns_events
 name_ko: "TIGER 미국S&P500"
 tags: [SNS, sns_events, 해외주식ETF]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

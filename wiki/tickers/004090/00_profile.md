@@ -4,7 +4,7 @@ ticker: "004090"
 section_type: profile
 name_ko: "한국석유"
 tags: [profile, 석유화학, 아스팔트]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:02:50+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 

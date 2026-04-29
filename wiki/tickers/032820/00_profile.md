@@ -4,7 +4,7 @@ ticker: "032820"
 section_type: profile
 name_ko: "우리기술"
 tags: [SMR, profile, 원자력, 전기전자]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:19+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
@@ -13,6 +13,8 @@ source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approve
 
 - 우리기술은 발전소 제어시스템(DCS)·원전 안전계통·산업자동화 솔루션을 공급하는 전기·전자 자동화 기업이다.  _(src:Curated · conf:0.94)_
 - 한수원·한전기술 등과 협력해 SMR(소형모듈원자로) 안전계통·국산 원전 후속기 사업에 참여한다.  _(src:Curated · conf:0.88)_
+- 우리기술은 원자력·발전 제어 시스템을 공급한다
+- 산업용 계측·제어(I&C) 솔루션을 제공하는 제조사다
 
 
 

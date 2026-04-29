@@ -4,7 +4,7 @@ ticker: "069500"
 section_type: sns_events
 name_ko: "KODEX 200"
 tags: [SNS, sns_events, 국내주식ETF]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

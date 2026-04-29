@@ -4,7 +4,7 @@ ticker: "091160"
 section_type: sns_events
 name_ko: "KODEX 반도체"
 tags: [SNS, sns_events, 섹터ETF]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

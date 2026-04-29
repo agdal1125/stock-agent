@@ -4,7 +4,7 @@ ticker: "035900"
 section_type: latest_events
 name_ko: "JYP Ent."
 tags: [K-Pop, latest_events, 실적, 엔터테인먼트]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 

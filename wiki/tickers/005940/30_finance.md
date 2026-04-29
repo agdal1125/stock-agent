@@ -3,8 +3,8 @@ doc_id: "005940:finance"
 ticker: "005940"
 section_type: finance
 name_ko: "NH투자증권"
-tags: [FnGuide, finance, 증권]
-updated_at: "2026-04-27T01:17:38+00:00"
+tags: [FnGuide, finance, 실적, 증권, 환율]
+updated_at: "2026-04-27T03:02:51+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (finance)"
 
 external_refs:
@@ -27,6 +27,11 @@ external_refs:
 - 2025년 4분기 영업수익은 6조4,077억원, 영업이익은 4,183억원, 당기순이익은 2,965억원이다.  _([Hankyung 2026-02-03](https://plus.hankyung.com/apps/newsinside.view?aid=202602034715h&category=&sns=y) · conf:0.95)_
 - 2025년 순이익 1조원대 회복으로 브로커리지·IB·운용 손익 기여가 모두 중요해졌다.  _([NHIS 2025 result](https://finance.daum.net/news/20260203140000375) · conf:0.88)_
 - 이익 변동성 변수는 거래대금(시장 회전율), IPO·DCM 딜 파이프라인, 채권·트레이딩 손익, 충당금이다.  _(src:Curated · conf:0.85)_
+- 금리·환율 변동이 트레이딩 손익에 영향을 준다
+- 부동산 PF 익스포저 관리가 리스크로 제시된다
+- NH투자증권의 2026년 1분기 실적이 시장 기대치를 소폭 상회했다
+- 실적 개선은 리테일 거래대금 회복과 IB 부문 호조에 기인했다
+- 부동산 PF 관련 충당금 추가 가능성이 하방 리스크로 언급됐다
 
 
 

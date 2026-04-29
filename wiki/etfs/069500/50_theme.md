@@ -4,7 +4,7 @@ ticker: "069500"
 section_type: theme
 name_ko: "KODEX 200"
 tags: [ETF, SK하이닉스, theme, 국내주식ETF, 대형주, 반도체, 삼성전자, 코스피]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 

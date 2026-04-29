@@ -4,7 +4,7 @@ ticker: "091160"
 section_type: theme
 name_ko: "KODEX 반도체"
 tags: [AI, AI가속기, ETF, HBM, theme, 메모리, 반도체, 섹터ETF]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 

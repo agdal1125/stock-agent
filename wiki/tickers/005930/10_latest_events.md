@@ -4,7 +4,7 @@ ticker: "005930"
 section_type: latest_events
 name_ko: "삼성전자"
 tags: [HBM, latest_events, 메모리, 반도체, 수주, 자사주, 특징주, 파운드리]
-updated_at: "2026-04-27T02:05:36+00:00"
+updated_at: "2026-04-27T03:08:25+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 

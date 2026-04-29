@@ -4,7 +4,7 @@ ticker: "005940"
 section_type: latest_events
 name_ko: "NH투자증권"
 tags: [AI, latest_events, 실적, 자사주, 증권]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:02:51+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_event_timeline (news + disclosure)"
 ---
 

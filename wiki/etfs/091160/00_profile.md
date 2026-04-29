@@ -4,7 +4,7 @@ ticker: "091160"
 section_type: profile
 name_ko: "KODEX 반도체"
 tags: [ETF, profile, 반도체, 섹터ETF, 후공정]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 

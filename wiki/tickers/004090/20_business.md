@@ -4,7 +4,7 @@ ticker: "004090"
 section_type: business
 name_ko: "한국석유"
 tags: [SOC, business, 석유화학, 실적, 아스팔트, 유가]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:02:50+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 

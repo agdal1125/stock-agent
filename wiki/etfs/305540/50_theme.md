@@ -4,7 +4,7 @@ ticker: "305540"
 section_type: theme
 name_ko: "TIGER 2차전지테마"
 tags: [2차전지, ETF, EV, IRA, theme, 섹터ETF, 양극재]
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (theme) + ticker_master"
 ---
 

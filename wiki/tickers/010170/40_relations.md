@@ -4,7 +4,7 @@ ticker: "010170"
 section_type: relations
 name_ko: "대한광통신"
 tags: [relations, 광케이블, 데이터센터]
-updated_at: "2026-04-27T02:09:06+00:00"
+updated_at: "2026-04-27T03:02:51+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 

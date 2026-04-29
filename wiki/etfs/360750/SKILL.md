@@ -2,7 +2,7 @@
 ticker: "360750"
 name_ko: "TIGER 미국S&P500"
 kind: skill
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 ---
 
 # TIGER 미국S&P500 (360750) — SKILL

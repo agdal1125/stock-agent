@@ -4,7 +4,7 @@ ticker: "073570"
 section_type: business
 name_ko: "리튬포어스"
 tags: [2차전지, 2차전지소재, business, 양극재, 전구체]
-updated_at: "2026-04-27T02:05:36+00:00"
+updated_at: "2026-04-27T03:08:18+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
@@ -13,6 +13,13 @@ source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approve
 
 - 매출은 정밀화학(계면활성제·특수 화학소재)이 주력이고, 2차전지 소재(전구체·리튬 화합물·리튬티타네이트)는 신규 상업 라인이 단계적으로 가동된다.  _(src:Curated · conf:0.88)_
 - 리튬·니켈·코발트 등 원재료 가격과 양극재 수요 사이클이 직접적인 매출 민감도 요인이다.  _(src:Curated · conf:0.83)_
+- 주요 사업은 2차전지 소재 관련 제품과 장비·부품 공급이다
+- 리튬포어스가 2차전지 소재 신사업 로드맵을 이달 내 공개할 예정
+- 일부 기존 전기·전자 부품 사업도 유지하고 있다
+- 회사는 신사업 방향을 2차전지 소재로 조정한 이력이 있다
+- 리튬 가격은 수요와 중국 재고, 호주 광산 공급 변수에 영향받는다
+- 공개 내용에 초기 양산 시점과 주요 고객사 업데이트가 포함될 수 있다
+- OEM 신규 프로젝트 소식이 투자 심리를 자극했다.
 
 
 

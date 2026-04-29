@@ -4,7 +4,7 @@ ticker: "005930"
 section_type: sns_events
 name_ko: "삼성전자"
 tags: [HBM, SNS, sns_events, 반도체, 실적]
-updated_at: "2026-04-27T02:05:36+00:00"
+updated_at: "2026-04-27T03:08:25+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

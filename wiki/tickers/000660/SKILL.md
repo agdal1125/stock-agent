@@ -2,7 +2,7 @@
 ticker: "000660"
 name_ko: "SK하이닉스"
 kind: skill
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:08:40+00:00"
 ---
 
 # SK하이닉스 (000660) — SKILL

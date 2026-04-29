@@ -2,7 +2,7 @@
 ticker: "004090"
 name_ko: "한국석유"
 kind: skill
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:02:50+00:00"
 ---
 
 # 한국석유 (004090) — SKILL

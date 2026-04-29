@@ -2,7 +2,7 @@
 ticker: "305540"
 name_ko: "TIGER 2차전지테마"
 kind: skill
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 ---
 
 # TIGER 2차전지테마 (305540) — SKILL

@@ -4,7 +4,7 @@ ticker: "004090"
 section_type: sns_events
 name_ko: "한국석유"
 tags: [SNS, sns_events, 석유화학]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:02:50+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

@@ -2,7 +2,7 @@
 ticker: "035900"
 name_ko: "JYP Ent."
 kind: skill
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:52+00:00"
 ---
 
 # JYP Ent. (035900) — SKILL

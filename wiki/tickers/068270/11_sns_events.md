@@ -4,7 +4,7 @@ ticker: "068270"
 section_type: sns_events
 name_ko: "셀트리온"
 tags: [SNS, sns_events, 바이오, 바이오시밀러, 환율]
-updated_at: "2026-04-27T01:17:38+00:00"
+updated_at: "2026-04-27T03:02:46+00:00"
 source: "derived from L0 stock_event_timeline (sns)"
 ---
 

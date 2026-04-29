@@ -2,7 +2,7 @@
 ticker: "379810"
 name_ko: "KODEX 미국나스닥100TR"
 kind: skill
-updated_at: "2026-04-27T01:17:39+00:00"
+updated_at: "2026-04-27T03:02:53+00:00"
 ---
 
 # KODEX 미국나스닥100TR (379810) — SKILL

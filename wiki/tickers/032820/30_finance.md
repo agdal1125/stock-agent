@@ -3,8 +3,8 @@ doc_id: "032820:finance"
 ticker: "032820"
 section_type: finance
 name_ko: "우리기술"
-tags: [FnGuide, SMR, finance, 수주, 전기전자]
-updated_at: "2026-04-27T01:17:38+00:00"
+tags: [FnGuide, SMR, finance, 수주, 실적, 전기전자]
+updated_at: "2026-04-27T03:08:19+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (finance)"
 
 external_refs:
@@ -27,6 +27,7 @@ external_refs:
 - 2025년 말 자산은 3,384.29억원, 부채는 2,140.61억원, 자본은 1,243.68억원이다.  _([FairValueResearch 032820](https://www.fairvalueresearch.co.kr/ko/stocks/032820) · conf:0.94)_
 - 2025년 수익성 악화는 일부 프로젝트 초기 원가 부담과 납기 일정 지연 영향으로 설명된다.  _([FairValueResearch 032820](https://www.fairvalueresearch.co.kr/ko/stocks/032820) · conf:0.85)_
 - 부채비율은 약 172%로 SMR 정책·수주 사이클 회복이 신용 지표 개선의 변수다.  _(src:Curated · conf:0.80)_
+- 수주 기반 매출 특성상 분기 실적 편차가 있다
 
 
 

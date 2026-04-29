@@ -4,7 +4,7 @@ ticker: "073570"
 section_type: relations
 name_ko: "리튬포어스"
 tags: [2차전지, 2차전지소재, relations, 전구체]
-updated_at: "2026-04-27T02:05:36+00:00"
+updated_at: "2026-04-27T03:08:18+00:00"
 source: "derived from seed/wiki_facts.csv + L0 stock_claim (review_state=approved)"
 ---
 
